@@ -1,0 +1,2531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Blue With You">
+<meta name="theme-color" content="#010c18">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Blue With You 🌊</title>
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
+<!-- PWA manifest (inline blob — no server needed) -->
+<script>
+(function() {
+  const iconSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%23010c18'/><text y='340' x='256' text-anchor='middle' font-size='320'>🌊</text></svg>`;
+  const iconUrl = 'data:image/svg+xml,' + iconSvg;
+  const manifest = {
+    name: "Blue With You",
+    short_name: "Blue With You",
+    description: "Chill open-world marine exploration game",
+    start_url: "./",
+    display: "fullscreen",
+    orientation: "portrait",
+    background_color: "#010c18",
+    theme_color: "#010c18",
+    icons: [
+      { src: iconUrl, sizes: "192x192", type: "image/svg+xml" },
+      { src: iconUrl, sizes: "512x512", type: "image/svg+xml" }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+  const link = document.createElement('link');
+  link.rel = 'manifest';
+  link.href = URL.createObjectURL(blob);
+  document.head.appendChild(link);
+
+  // Apple touch icon (inline PNG via canvas)
+  window.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512; canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    // Background
+    ctx.fillStyle = '#010c18';
+    const r = 80;
+    ctx.beginPath();
+    ctx.moveTo(r,0); ctx.lineTo(512-r,0);
+    ctx.quadraticCurveTo(512,0,512,r);
+    ctx.lineTo(512,512-r);
+    ctx.quadraticCurveTo(512,512,512-r,512);
+    ctx.lineTo(r,512);
+    ctx.quadraticCurveTo(0,512,0,512-r);
+    ctx.lineTo(0,r);
+    ctx.quadraticCurveTo(0,0,r,0);
+    ctx.closePath();
+    ctx.fill();
+    // Emoji
+    ctx.font = '320px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🌊', 256, 280);
+    // Add as apple-touch-icon
+    const appleLink = document.createElement('link');
+    appleLink.rel = 'apple-touch-icon';
+    appleLink.href = canvas.toDataURL('image/png');
+    document.head.appendChild(appleLink);
+  });
+})();
+</script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;700&family=Nunito:wght@400;600;700;800;900&display=swap');
+
+:root {
+  --deep:#010c18; --abyss:#020e1d; --ocean:#0a2340; --mid:#0d3560;
+  --surface:#0e4d8a; --glow:#00c8ff; --biolum:#00ffcc; --coral:#ff6b6b;
+  --sand:#f5e6c8; --gold:#ffd700; --warn:#ff9f43; --text:#e8f4fd;
+  --muted:#5e9bc0; --safe: env(safe-area-inset-bottom, 0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif;
+  background:var(--deep);color:var(--text);
+  padding-bottom:env(safe-area-inset-bottom);
+  padding-top:env(safe-area-inset-top);
+}
+
+/* ══════════ OCEAN BACKGROUND ══════════ */
+#bg{position:fixed;inset:0;z-index:0;overflow:hidden;
+  background:radial-gradient(ellipse at 50% -20%,#0d4a8a 0%,#0a2340 35%,#020e1d 70%,#010c18 100%);
+}
+.ray{position:absolute;top:0;left:50%;width:3px;height:60%;transform-origin:top center;
+  background:linear-gradient(180deg,rgba(0,200,255,0.06),transparent);
+  border-radius:0 0 3px 3px;
+}
+.bubble{position:absolute;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,rgba(0,200,255,0.35),rgba(0,200,255,0.04));
+  border:1px solid rgba(0,200,255,0.15);
+  animation:riseUp linear infinite;
+}
+@keyframes riseUp{
+  0%{transform:translateY(105vh) translateX(0) scale(1);opacity:0;}
+  5%{opacity:0.8;}
+  90%{opacity:0.4;}
+  100%{transform:translateY(-5vh) translateX(20px) scale(1.1);opacity:0;}
+}
+.particle{position:absolute;width:2px;height:2px;border-radius:50%;
+  background:rgba(0,200,255,0.4);animation:drift linear infinite;
+}
+@keyframes drift{
+  0%{transform:translateY(100vh) translateX(0);opacity:0;}
+  10%{opacity:1;}
+  100%{transform:translateY(-10vh) translateX(calc(sin(var(--i)) * 40px));opacity:0;}
+}
+.sea-floor{position:absolute;bottom:0;left:0;right:0;height:80px;
+  background:linear-gradient(0deg,#0a1e0e,#0a2340);
+  border-radius:60% 60% 0 0 / 30px 30px 0 0;
+  display:flex;align-items:flex-end;justify-content:space-around;padding:0 10px;
+  pointer-events:none;
+}
+.kelp-strand{width:8px;height:var(--h);background:linear-gradient(0deg,#1a5c2a,#2d8a4e);
+  border-radius:4px 4px 0 0;transform-origin:bottom center;animation:sway 3s ease-in-out infinite;
+  animation-delay:var(--d);opacity:0.7;
+}
+@keyframes sway{0%,100%{transform:rotate(-8deg);}50%{transform:rotate(8deg);}}
+
+/* ══════════ SCREENS ══════════ */
+.hidden{display:none!important;}
+.screen{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:20px 16px;overflow-y:auto;
+}
+.screen.hidden{display:none;}
+
+/* ══════════ TITLE SCREEN ══════════ */
+#screen-title{justify-content:center;padding:40px 16px;}
+.title-ocean{display:flex;align-items:center;justify-content:center;flex-direction:column;
+  margin-bottom:28px;pointer-events:none;
+}
+.title-fish{font-size:5rem;animation:titleFloat 4s ease-in-out infinite;
+  filter:drop-shadow(0 0 30px rgba(0,200,255,0.6));
+}
+@keyframes titleFloat{
+  0%,100%{transform:translateY(0) rotate(-3deg);}
+  50%{transform:translateY(-18px) rotate(3deg);}
+}
+h1.game-title{
+  font-family:'Cinzel',serif;font-size:clamp(2.2rem,8vw,3.4rem);
+  font-weight:700;letter-spacing:2px;line-height:1;
+  background:linear-gradient(135deg,#fff 0%,var(--glow) 40%,var(--biolum) 80%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  text-shadow:none;margin-bottom:4px;
+}
+.game-tagline{font-family:'Crimson Text',serif;font-style:italic;
+  font-size:1.1rem;color:var(--muted);letter-spacing:1px;
+}
+.title-btns{width:100%;max-width:340px;display:flex;flex-direction:column;gap:12px;margin-top:16px;}
+.version-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--muted);
+  letter-spacing:3px;text-transform:uppercase;margin-top:8px;opacity:0.5;
+}
+.install-hint{background:rgba(0,200,255,0.08);border:1px solid rgba(0,200,255,0.2);
+  border-radius:12px;padding:10px 14px;font-size:0.78rem;color:var(--muted);
+  text-align:center;margin-bottom:8px;width:100%;max-width:340px;
+}
+.install-hint strong{color:var(--glow);}
+
+/* ══════════ BUTTONS ══════════ */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:15px 28px;border-radius:50px;border:none;cursor:pointer;
+  font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;
+  transition:all 0.15s ease;position:relative;overflow:hidden;
+  -webkit-appearance:none;
+}
+.btn:active{transform:scale(0.95);}
+.btn-primary{
+  background:linear-gradient(135deg,#1a7cc9,var(--glow));
+  color:var(--deep);box-shadow:0 4px 24px rgba(0,200,255,0.45);width:100%;
+}
+.btn-secondary{
+  background:rgba(13,53,96,0.7);color:var(--glow);
+  border:1.5px solid rgba(0,200,255,0.25);width:100%;
+  backdrop-filter:blur(10px);
+}
+.btn-ghost{
+  background:rgba(255,255,255,0.05);color:var(--muted);
+  border:1px solid rgba(255,255,255,0.1);width:100%;font-size:0.88rem;
+}
+.btn-icon{width:46px;height:46px;padding:0;border-radius:14px;font-size:1.3rem;flex-shrink:0;
+  background:rgba(0,200,255,0.1);border:1px solid rgba(0,200,255,0.2);color:var(--glow);
+}
+.btn-sm{padding:9px 18px;font-size:0.82rem;font-weight:700;}
+
+/* ══════════ CARDS ══════════ */
+.card{background:rgba(8,24,48,0.88);border:1px solid rgba(0,200,255,0.14);
+  border-radius:20px;padding:20px;backdrop-filter:blur(14px);
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);width:100%;max-width:420px;
+}
+.card-title{font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  letter-spacing:3px;color:var(--glow);text-transform:uppercase;margin-bottom:16px;
+}
+.divider{height:1px;background:rgba(0,200,255,0.1);margin:14px 0;}
+
+/* ══════════ MODE SELECT ══════════ */
+#screen-mode .mode-cards{display:flex;flex-direction:column;gap:12px;width:100%;max-width:420px;}
+.mode-card{background:rgba(8,24,48,0.88);border:1.5px solid rgba(0,200,255,0.12);
+  border-radius:20px;padding:18px 20px;cursor:pointer;display:flex;align-items:center;gap:16px;
+  transition:all 0.2s ease;backdrop-filter:blur(14px);
+}
+.mode-card:active{transform:scale(0.97);border-color:var(--glow);}
+.mode-icon{font-size:2.4rem;flex-shrink:0;}
+.mode-info h3{font-family:'Cinzel',serif;font-size:1rem;margin-bottom:4px;}
+.mode-info p{font-size:0.78rem;color:var(--muted);line-height:1.4;}
+.mode-badge{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:2px;
+  padding:3px 10px;border-radius:20px;margin-top:6px;display:inline-block;
+}
+.badge-solo{background:rgba(0,200,255,0.1);color:var(--glow);border:1px solid rgba(0,200,255,0.2);}
+.badge-multi{background:rgba(0,255,204,0.1);color:var(--biolum);border:1px solid rgba(0,255,204,0.2);}
+
+/* ══════════ NAME INPUT ══════════ */
+.field-label{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:2px;
+  color:var(--muted);text-transform:uppercase;margin-bottom:8px;display:block;}
+.text-input{width:100%;background:rgba(0,200,255,0.07);border:1.5px solid rgba(0,200,255,0.2);
+  border-radius:14px;padding:13px 16px;color:var(--text);
+  font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;outline:none;
+  -webkit-appearance:none;transition:border 0.2s;
+}
+.text-input:focus{border-color:var(--glow);box-shadow:0 0 0 3px rgba(0,200,255,0.12);}
+.text-input::placeholder{color:rgba(94,155,192,0.4);font-weight:400;}
+.avatar-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+.avatar-opt{font-size:2rem;width:52px;height:52px;border-radius:14px;
+  background:rgba(0,200,255,0.07);border:2px solid rgba(0,200,255,0.12);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all 0.15s;
+}
+.avatar-opt.selected{border-color:var(--glow);background:rgba(0,200,255,0.2);
+  box-shadow:0 0 12px rgba(0,200,255,0.3);}
+.avatar-opt:active{transform:scale(0.9);}
+
+/* ══════════ ROOM ══════════ */
+.room-code-box{font-family:'JetBrains Mono',monospace;font-size:3rem;
+  letter-spacing:0.6rem;color:var(--biolum);text-align:center;
+  background:rgba(0,255,204,0.05);border:2px dashed rgba(0,255,204,0.3);
+  border-radius:16px;padding:18px;margin:12px 0;
+}
+.player-slot{display:flex;align-items:center;gap:12px;padding:12px 14px;
+  border-radius:14px;background:rgba(0,200,255,0.06);
+  border:1px solid rgba(0,200,255,0.1);margin-bottom:10px;
+}
+.slot-avatar{font-size:1.8rem;}
+.slot-info{flex:1;}
+.slot-name{font-weight:800;font-size:0.95rem;}
+.slot-role{font-size:0.7rem;color:var(--muted);margin-top:2px;}
+.slot-badge{font-family:'JetBrains Mono',monospace;font-size:0.58rem;
+  padding:3px 9px;border-radius:20px;letter-spacing:1px;
+}
+.badge-host{background:rgba(255,215,0,0.12);color:var(--gold);border:1px solid rgba(255,215,0,0.25);}
+.badge-crew{background:rgba(0,255,204,0.1);color:var(--biolum);border:1px solid rgba(0,255,204,0.2);}
+.badge-waiting{background:rgba(94,155,192,0.1);color:var(--muted);border:1px solid rgba(94,155,192,0.2);}
+
+/* ══════════ MISSION SELECT ══════════ */
+#screen-missions{padding-top:60px;justify-content:flex-start;}
+.missions-header{width:100%;max-width:480px;display:flex;align-items:center;
+  justify-content:space-between;margin-bottom:16px;}
+.missions-header h2{font-family:'Cinzel',serif;font-size:1.3rem;}
+.missions-list{width:100%;max-width:480px;display:flex;flex-direction:column;gap:12px;
+  overflow-y:auto;padding-bottom:20px;max-height:calc(100vh - 130px);
+}
+.missions-list::-webkit-scrollbar{width:0;}
+.mission-card{background:rgba(8,24,48,0.88);border:1.5px solid rgba(0,200,255,0.12);
+  border-radius:18px;padding:16px;cursor:pointer;position:relative;overflow:hidden;
+  transition:all 0.2s ease;backdrop-filter:blur(12px);
+}
+.mission-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:linear-gradient(180deg,var(--glow),var(--biolum));}
+.mission-card:active:not(.locked){transform:scale(0.98);border-color:var(--glow);}
+.mission-card.locked{opacity:0.42;cursor:not-allowed;}
+.mc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;}
+.mc-title{font-family:'Cinzel',serif;font-size:0.95rem;font-weight:600;line-height:1.3;}
+.mc-level{font-family:'JetBrains Mono',monospace;font-size:0.58rem;padding:4px 10px;
+  border-radius:20px;white-space:nowrap;flex-shrink:0;}
+.lvl-easy{background:rgba(0,200,255,0.1);color:var(--glow);border:1px solid rgba(0,200,255,0.2);}
+.lvl-med{background:rgba(255,159,67,0.1);color:var(--warn);border:1px solid rgba(255,159,67,0.2);}
+.lvl-hard{background:rgba(255,107,107,0.1);color:var(--coral);border:1px solid rgba(255,107,107,0.2);}
+.mc-desc{font-size:0.8rem;color:var(--muted);line-height:1.5;margin-bottom:10px;}
+.mc-meta{display:flex;flex-wrap:wrap;gap:8px;}
+.mc-chip{font-size:0.68rem;color:var(--muted);display:flex;align-items:center;gap:4px;}
+
+/* ══════════ GAME HUD ══════════ */
+#hud{position:fixed;top:0;left:0;right:0;z-index:30;
+  display:flex;align-items:flex-start;justify-content:space-between;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;
+  background:linear-gradient(180deg,rgba(1,12,24,0.95) 0%,transparent 100%);
+  pointer-events:none;
+}
+.hud-block{display:flex;flex-direction:column;gap:2px;}
+.hud-label{font-family:'JetBrains Mono',monospace;font-size:0.55rem;letter-spacing:2px;
+  color:var(--muted);text-transform:uppercase;}
+.hud-val{font-weight:800;font-size:0.95rem;color:var(--text);}
+.hud-center{text-align:center;flex:1;padding:0 10px;}
+.hud-mission{font-family:'Crimson Text',serif;font-style:italic;font-size:0.9rem;color:var(--glow);}
+.hud-partner{font-size:0.72rem;color:var(--biolum);margin-top:2px;}
+.xp-bar{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;margin-top:4px;width:80px;}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--glow2),var(--biolum));border-radius:2px;transition:width 0.8s ease;}
+.hp-bar{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;margin-top:4px;width:80px;}
+.hp-fill{height:100%;background:linear-gradient(90deg,#2d8a4e,#00ffcc);border-radius:2px;transition:width 0.5s ease;}
+
+/* ══════════ GAME SCENE ══════════ */
+#game-wrap{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;}
+#ocean-scene{flex:1;position:relative;overflow:hidden;cursor:crosshair;
+  padding-top:80px;padding-bottom:100px;
+}
+.animal-ent{position:absolute;font-size:2.6rem;cursor:pointer;
+  filter:drop-shadow(0 0 8px rgba(0,200,255,0.25));
+  animation:swimAnim var(--spd,6s) ease-in-out infinite;
+  transition:transform 0.1s;
+}
+@keyframes swimAnim{
+  0%{transform:translate(0,0) rotate(0deg);}
+  25%{transform:translate(8px,-6px) rotate(-2deg);}
+  50%{transform:translate(14px,0px) rotate(0deg);}
+  75%{transform:translate(8px,6px) rotate(2deg);}
+  100%{transform:translate(0,0) rotate(0deg);}
+}
+.animal-ent:active{transform:scale(0.82)!important;}
+.animal-ent.tagged{animation:taggedAnim 0.7s ease forwards;}
+@keyframes taggedAnim{
+  0%{transform:scale(1);filter:drop-shadow(0 0 8px rgba(0,200,255,0.3));}
+  40%{transform:scale(1.7);filter:drop-shadow(0 0 24px var(--biolum));}
+  100%{transform:scale(0) rotate(30deg);opacity:0;}
+}
+.animal-ent.flee{animation:fleeAnim 0.9s ease forwards;}
+@keyframes fleeAnim{to{transform:translateX(200px) scale(0.3);opacity:0;}}
+.scan-ring{position:absolute;border-radius:50%;pointer-events:none;z-index:5;
+  border:2px solid rgba(0,200,255,0.7);
+  animation:scanExp 0.8s ease-out forwards;
+}
+@keyframes scanExp{
+  0%{width:0;height:0;margin:0;opacity:1;}
+  100%{width:130px;height:130px;margin:-65px 0 0 -65px;opacity:0;}
+}
+.depth-grad{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(1,12,24,0.5) 0%,transparent 20%,transparent 75%,rgba(1,12,24,0.7) 100%);
+}
+.particle-scene{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.snow{position:absolute;background:rgba(0,200,255,0.15);border-radius:50%;
+  animation:snowDrift linear infinite;
+}
+@keyframes snowDrift{
+  0%{transform:translateY(-10px) translateX(0);}
+  100%{transform:translateY(100vh) translateX(calc(sin(var(--i,1)) * 30px));}
+}
+.fish-school{position:absolute;font-size:1.2rem;opacity:0.25;
+  animation:schoolSwim linear infinite;pointer-events:none;
+}
+@keyframes schoolSwim{0%{transform:translateX(-15vw);}100%{transform:translateX(115vw);}}
+
+/* ══════════ INFO POPUP ══════════ */
+#info-popup{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);
+  z-index:40;width:calc(100% - 28px);max-width:440px;
+  background:rgba(4,18,40,0.97);border:1.5px solid rgba(0,200,255,0.28);
+  border-radius:22px;padding:18px;backdrop-filter:blur(20px);
+  box-shadow:0 12px 50px rgba(0,0,0,0.7);
+  transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+#info-popup.hidden{opacity:0;transform:translateX(-50%) translateY(24px);pointer-events:none;}
+.popup-top{display:flex;align-items:flex-start;gap:14px;margin-bottom:12px;}
+.popup-emoji{font-size:2.8rem;filter:drop-shadow(0 0 12px rgba(0,200,255,0.4));flex-shrink:0;}
+.popup-names{flex:1;}
+.popup-common{font-family:'Cinzel',serif;font-size:1.15rem;font-weight:600;}
+.popup-sci{font-family:'Crimson Text',serif;font-style:italic;font-size:0.8rem;color:var(--muted);margin-top:2px;}
+.popup-close{font-size:1.3rem;cursor:pointer;color:var(--muted);padding:4px;pointer-events:all;}
+.popup-fact{font-size:0.84rem;color:var(--sand);line-height:1.65;margin-bottom:12px;
+  border-left:3px solid rgba(0,200,255,0.3);padding-left:12px;
+}
+.popup-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.ptag{font-size:0.68rem;padding:4px 10px;border-radius:20px;
+  background:rgba(0,200,255,0.08);color:var(--glow);border:1px solid rgba(0,200,255,0.18);}
+.popup-btns{display:flex;gap:10px;}
+.popup-btns .btn{flex:1;}
+
+/* ══════════ TOOLBAR ══════════ */
+#toolbar{position:fixed;bottom:0;left:0;right:0;z-index:30;
+  display:flex;align-items:center;justify-content:space-around;
+  padding:12px 8px calc(env(safe-area-inset-bottom,0px) + 12px);
+  background:linear-gradient(0deg,rgba(1,12,24,0.98) 70%,transparent);
+}
+.tool-btn{display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:rgba(0,200,255,0.07);border:1.5px solid rgba(0,200,255,0.12);
+  border-radius:16px;padding:9px 12px;cursor:pointer;flex:1;max-width:72px;
+  transition:all 0.15s;-webkit-appearance:none;
+}
+.tool-btn:active,.tool-btn.active{background:rgba(0,200,255,0.2);border-color:var(--glow);
+  box-shadow:0 0 12px rgba(0,200,255,0.25);}
+.tool-icon{font-size:1.35rem;line-height:1;}
+.tool-label{font-family:'JetBrains Mono',monospace;font-size:0.52rem;color:var(--muted);
+  letter-spacing:1px;text-transform:uppercase;}
+
+/* ══════════ OBJECTIVES PANEL ══════════ */
+#obj-panel{position:fixed;right:0;top:80px;z-index:25;width:190px;
+  background:rgba(4,18,40,0.9);border:1px solid rgba(0,200,255,0.12);
+  border-radius:16px 0 0 16px;padding:14px;backdrop-filter:blur(12px);
+  transition:transform 0.3s ease;
+}
+#obj-panel.collapsed{transform:translateX(166px);}
+#obj-panel .obj-tab{position:absolute;left:-28px;top:50%;transform:translateY(-50%);
+  width:28px;height:60px;background:rgba(4,18,40,0.9);
+  border:1px solid rgba(0,200,255,0.12);border-right:none;
+  border-radius:10px 0 0 10px;display:flex;align-items:center;justify-content:center;
+  font-size:0.7rem;cursor:pointer;writing-mode:vertical-rl;
+  font-family:'JetBrains Mono',monospace;letter-spacing:2px;color:var(--muted);
+  text-transform:uppercase;
+}
+.obj-title{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:2px;
+  color:var(--glow);text-transform:uppercase;margin-bottom:10px;}
+.obj-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:9px;font-size:0.78rem;line-height:1.3;}
+.obj-dot{width:17px;height:17px;border-radius:50%;border:2px solid rgba(0,200,255,0.3);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.6rem;
+  margin-top:1px;
+}
+.obj-dot.done{background:var(--biolum);border-color:var(--biolum);color:var(--deep);}
+.obj-text{color:var(--muted);}
+.obj-text.done{text-decoration:line-through;opacity:0.5;color:var(--text);}
+.obj-progress{font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--glow);margin-top:2px;}
+
+/* ══════════ CHAT BUBBLE + DRAWER ══════════ */
+#chat-bubble{
+  position:fixed;right:16px;bottom:110px;z-index:36;
+  width:52px;height:52px;border-radius:50%;
+  background:rgba(4,18,40,0.95);border:2px solid rgba(0,200,255,0.35);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;cursor:pointer;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
+  transition:transform 0.15s,border-color 0.2s;
+  pointer-events:auto;
+}
+#chat-bubble:active{transform:scale(0.9);}
+.chat-badge{
+  position:absolute;top:-4px;right:-4px;
+  background:var(--coral);color:#fff;
+  font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;
+  width:18px;height:18px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--deep);
+}
+.chat-badge.badge-hide{display:none;}
+#chat-panel{position:fixed;bottom:100px;right:0;left:0;z-index:35;
+  background:rgba(4,18,40,0.97);border-top:1px solid rgba(0,200,255,0.15);
+  border-radius:20px 20px 0 0;
+  padding:0 14px 14px;backdrop-filter:blur(20px);
+  transition:transform 0.3s cubic-bezier(0.34,1.2,0.64,1);
+  pointer-events:auto;
+  box-shadow:0 -8px 30px rgba(0,0,0,0.5);
+}
+#chat-panel.chat-closed{transform:translateY(110%);pointer-events:none;}
+.chat-header{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0 10px;border-bottom:1px solid rgba(0,200,255,0.1);margin-bottom:10px;
+}
+.chat-title{font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  letter-spacing:2px;color:var(--glow);text-transform:uppercase;
+}
+.chat-close-btn{background:rgba(0,200,255,0.08);border:1px solid rgba(0,200,255,0.2);
+  color:var(--muted);border-radius:8px;width:28px;height:28px;
+  cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;
+  pointer-events:auto;-webkit-appearance:none;
+}
+.chat-close-btn:active{background:rgba(0,200,255,0.2);}
+.chat-msgs{max-height:130px;overflow-y:auto;margin-bottom:10px;
+  display:flex;flex-direction:column;gap:5px;}
+.chat-msgs::-webkit-scrollbar{width:0;}
+.chat-line{font-size:0.8rem;line-height:1.4;}
+.chat-from-you{color:var(--glow);}
+.chat-from-partner{color:var(--biolum);}
+.chat-from-sys{color:var(--gold);}
+.chat-from-game{color:var(--warn);}
+.chat-row{display:flex;gap:8px;}
+.chat-in{flex:1;background:rgba(0,200,255,0.08);border:1px solid rgba(0,200,255,0.18);
+  border-radius:20px;padding:9px 16px;color:var(--text);
+  font-family:'Nunito',sans-serif;font-size:0.9rem;outline:none;
+  -webkit-appearance:none;pointer-events:auto;
+}
+.chat-in:focus{border-color:var(--glow);}
+
+/* ══════════ SETTINGS ══════════ */
+#screen-settings{justify-content:flex-start;padding-top:60px;overflow-y:auto;}
+.settings-section{width:100%;max-width:460px;margin-bottom:20px;}
+.settings-section-title{font-family:'JetBrains Mono',monospace;font-size:0.62rem;
+  letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;
+  padding-left:4px;}
+.setting-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 16px;background:rgba(8,24,48,0.8);border:1px solid rgba(0,200,255,0.1);
+  border-radius:14px;margin-bottom:8px;backdrop-filter:blur(10px);
+}
+.setting-left{display:flex;align-items:center;gap:12px;}
+.setting-icon{font-size:1.4rem;width:36px;text-align:center;}
+.setting-info h4{font-weight:700;font-size:0.9rem;}
+.setting-info p{font-size:0.72rem;color:var(--muted);margin-top:1px;}
+.toggle{position:relative;width:48px;height:26px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-track{position:absolute;inset:0;border-radius:13px;cursor:pointer;
+  background:rgba(0,200,255,0.1);border:1.5px solid rgba(0,200,255,0.2);
+  transition:background 0.2s;
+}
+.toggle input:checked + .toggle-track{background:rgba(0,200,255,0.3);border-color:var(--glow);}
+.toggle-track::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;
+  border-radius:50%;background:var(--muted);transition:all 0.2s;
+}
+.toggle input:checked + .toggle-track::after{left:26px;background:var(--glow);}
+.slider-wrap{width:130px;}
+.range-sl{width:100%;-webkit-appearance:none;appearance:none;height:4px;
+  background:rgba(0,200,255,0.15);border-radius:2px;outline:none;cursor:pointer;
+}
+.range-sl::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
+  border-radius:50%;background:var(--glow);cursor:pointer;
+  box-shadow:0 0 8px rgba(0,200,255,0.5);
+}
+.range-val{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--glow);
+  min-width:30px;text-align:right;
+}
+.select-row{display:flex;gap:6px;flex-wrap:wrap;}
+.sel-opt{padding:6px 14px;border-radius:20px;font-size:0.75rem;font-weight:700;
+  background:rgba(0,200,255,0.07);border:1.5px solid rgba(0,200,255,0.15);
+  color:var(--muted);cursor:pointer;transition:all 0.15s;font-family:'Nunito',sans-serif;
+}
+.sel-opt.active{background:rgba(0,200,255,0.2);border-color:var(--glow);color:var(--glow);}
+.sel-opt:active{transform:scale(0.95);}
+
+/* ══════════ RESULTS ══════════ */
+#screen-results{overflow-y:auto;padding:20px 16px;}
+.result-hero{text-align:center;margin-bottom:24px;}
+.result-icon{font-size:4rem;animation:titleFloat 3s ease-in-out infinite;}
+.result-title{font-family:'Cinzel',serif;font-size:1.6rem;margin:8px 0 4px;
+  background:linear-gradient(135deg,var(--glow),var(--biolum));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.result-sub{color:var(--muted);font-size:0.85rem;}
+.score-big{font-family:'JetBrains Mono',monospace;font-size:3.8rem;color:var(--biolum);
+  text-align:center;margin:16px 0;
+  text-shadow:0 0 30px rgba(0,255,204,0.5);}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;width:100%;max-width:420px;}
+.stat-cell{background:rgba(8,24,48,0.8);border:1px solid rgba(0,200,255,0.1);
+  border-radius:14px;padding:14px;text-align:center;backdrop-filter:blur(10px);}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:1.5rem;color:var(--glow);margin-bottom:4px;}
+.stat-label{font-size:0.7rem;color:var(--muted);}
+.findings-wrap{width:100%;max-width:420px;margin-bottom:16px;}
+.findings-title{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:2px;
+  color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
+.findings-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.fc{font-size:1.4rem;padding:8px 14px;background:rgba(0,200,255,0.07);
+  border:1px solid rgba(0,200,255,0.15);border-radius:12px;}
+.result-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:420px;}
+
+/* ══════════ CODEX ══════════ */
+#screen-codex{justify-content:flex-start;padding-top:60px;overflow-y:auto;}
+.codex-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:480px;
+  overflow-y:auto;max-height:calc(100vh - 120px);padding-bottom:20px;}
+.codex-grid::-webkit-scrollbar{width:0;}
+.codex-card{background:rgba(8,24,48,0.85);border:1px solid rgba(0,200,255,0.1);
+  border-radius:16px;padding:14px;text-align:center;cursor:pointer;
+  transition:all 0.2s;backdrop-filter:blur(10px);
+}
+.codex-card.locked-card{opacity:0.35;filter:grayscale(1);}
+.codex-card:active:not(.locked-card){transform:scale(0.95);border-color:var(--glow);}
+.codex-emoji{font-size:2.4rem;margin-bottom:8px;}
+.codex-name{font-family:'Cinzel',serif;font-size:0.78rem;font-weight:600;margin-bottom:2px;}
+.codex-sci{font-family:'Crimson Text',serif;font-style:italic;font-size:0.68rem;color:var(--muted);}
+.codex-seen{font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:var(--biolum);margin-top:6px;}
+
+/* ══════════ TOAST / NOTIFICATIONS ══════════ */
+.toast-container{position:fixed;top:calc(env(safe-area-inset-top,0px) + 70px);
+  left:50%;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;
+  gap:6px;align-items:center;pointer-events:none;
+}
+.toast{padding:10px 20px;border-radius:30px;backdrop-filter:blur(14px);
+  font-weight:700;font-size:0.88rem;white-space:nowrap;
+  animation:toastPop 2.8s ease forwards;
+}
+@keyframes toastPop{
+  0%{opacity:0;transform:translateY(-10px) scale(0.9);}
+  12%{opacity:1;transform:translateY(0) scale(1);}
+  75%{opacity:1;}
+  100%{opacity:0;transform:translateY(-8px);}
+}
+.toast-good{background:rgba(0,255,204,0.12);color:var(--biolum);border:1px solid rgba(0,255,204,0.3);}
+.toast-warn{background:rgba(255,159,67,0.12);color:var(--warn);border:1px solid rgba(255,159,67,0.3);}
+.toast-info{background:rgba(0,200,255,0.12);color:var(--glow);border:1px solid rgba(0,200,255,0.3);}
+
+/* ══════════ MISC ══════════ */
+.page-back{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:14px;z-index:50;}
+.page-title{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;
+  transform:translateX(-50%);z-index:50;font-family:'Cinzel',serif;font-size:1rem;
+  color:var(--text);white-space:nowrap;
+}
+.page-action{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:14px;z-index:50;}
+.loading-ring{width:40px;height:40px;border-radius:50%;
+  border:3px solid rgba(0,200,255,0.15);border-top-color:var(--glow);
+  animation:spin 0.8s linear infinite;margin:20px auto;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.dot-live{width:8px;height:8px;border-radius:50%;background:var(--biolum);
+  display:inline-block;animation:livePulse 1.5s ease-in-out infinite;
+}
+@keyframes livePulse{0%,100%{box-shadow:0 0 0 0 rgba(0,255,204,0.5);}50%{box-shadow:0 0 0 8px rgba(0,255,204,0);}}
+.flex-gap{display:flex;flex-direction:column;gap:10px;width:100%;max-width:420px;}
+.text-center{text-align:center;}
+.text-muted{color:var(--muted);font-size:0.85rem;}
+.mt-4{margin-top:4px;} .mt-8{margin-top:8px;} .mt-12{margin-top:12px;} .mt-16{margin-top:16px;}
+.mb-4{margin-bottom:4px;} .mb-8{margin-bottom:8px;} .mb-12{margin-bottom:12px;} .mb-16{margin-bottom:16px;}
+.inline-row{display:flex;align-items:center;gap:10px;}
+.spacer{flex:1;}
+
+/* === TOUCH / POINTER FIX — keep decorative layers non-interactive only === */
+#bg, #bg *, .particle, .bubble, .ray, .particle-scene, .depth-grad,
+.kelp-strand, .sea-floor, .title-ocean, .fish-school, .snow {
+  pointer-events: none !important;
+}
+
+/* Ensure gameplay area is clickable */
+#ocean-scene {
+  padding-bottom: 180px !important;
+}
+
+/* Improve touch handling */
+* {
+  touch-action: manipulation;
+}
+
+
+/* ══════════ OCEAN WAVE ANIMATION ══════════ */
+.ocean { animation: wave 5s infinite; }
+@keyframes wave {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+
+/* ══════════ SMALL SCREEN HUD STACK ══════════ */
+@media screen and (max-width: 520px) {
+  .hud { display: flex; flex-direction: column; }
+}
+
+/* === TABLET / iPAD OPTIMIZATION === */
+@media (min-width: 768px) {
+  #game-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #ocean-scene {
+    max-width: 520px;
+    margin: 0 auto;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  #toolbar {
+    max-width: 520px;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    border-radius: 16px;
+  }
+
+  #hud {
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  #chat-panel {
+    max-width: 520px;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+  }
+
+  #obj-panel {
+    right: 10px;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                 OCEAN BACKGROUND                        -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="bg">
+  <div class="rays" id="rays-container"></div>
+  <div id="bubbles-container"></div>
+  <div id="particles-container"></div>
+  <div class="sea-floor" id="sea-floor">
+    <div class="kelp-strand" style="--h:55px;--d:0s;"></div>
+    <div class="kelp-strand" style="--h:70px;--d:0.4s;"></div>
+    <div class="kelp-strand" style="--h:45px;--d:0.8s;"></div>
+    <div class="kelp-strand" style="--h:80px;--d:0.2s;"></div>
+    <div class="kelp-strand" style="--h:60px;--d:0.6s;"></div>
+    <div class="kelp-strand" style="--h:40px;--d:1.0s;"></div>
+    <div class="kelp-strand" style="--h:75px;--d:0.3s;"></div>
+    <div class="kelp-strand" style="--h:50px;--d:0.9s;"></div>
+    <div class="kelp-strand" style="--h:65px;--d:0.5s;"></div>
+    <div class="kelp-strand" style="--h:42px;--d:0.7s;"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                  TOAST CONTAINER                        -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                  TITLE SCREEN                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-title">
+  <div class="title-ocean">
+    <div class="title-fish">🤿</div>
+    <h1 class="game-title">Blue With You</h1>
+    <p class="game-tagline">A Marine Biologist's Journey</p>
+  </div>
+  <div id="install-btn" class="install-hint" onclick="showInstallPrompt()" style="cursor:pointer;">
+    📲 <strong>Add to Home Screen</strong> for the best experience
+  </div>
+  <div class="title-btns">
+    <button class="btn btn-primary" onclick="sfx('click');showScreen('screen-name')">🌊 Dive In</button>
+    <button class="btn btn-secondary" onclick="sfx('click');showScreen('screen-codex')">📖 Field Codex</button>
+    <button class="btn btn-ghost" onclick="sfx('click');showScreen('screen-settings')">⚙️ Settings</button>
+  </div>
+  <div class="version-tag">v1.0 — Blue With You</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                  NAME + AVATAR                          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="screen hidden" id="screen-name">
+  <button class="btn btn-icon page-back" onclick="sfx('back');showScreen('screen-title')">←</button>
+  <span class="page-title">Your Profile</span>
+  <div class="card" style="max-width:400px;">
+    <div class="card-title">🧬 Marine Biologist ID</div>
+    <label class="field-label">Your Name</label>
+    <input class="text-input" id="input-name" placeholder="Dr. Lastname…" maxlength="20">
+    <div class="mt-12 mb-4"><label class="field-label">Pick Your Avatar</label></div>
+    <div class="avatar-row" id="avatar-row">
+      <div class="avatar-opt selected" data-av="🤿" onclick="pickAvatar(this)">🤿</div>
+      <div class="avatar-opt" data-av="🧜‍♀️" onclick="pickAvatar(this)">🧜‍♀️</div>
+      <div class="avatar-opt" data-av="🧑‍🔬" onclick="pickAvatar(this)">🧑‍🔬</div>
+      <div class="avatar-opt" data-av="🧜" onclick="pickAvatar(this)">🧜</div>
+      <div class="avatar-opt" data-av="👩‍🔬" onclick="pickAvatar(this)">👩‍🔬</div>
+      <div class="avatar-opt" data-av="🐬" onclick="pickAvatar(this)">🐬</div>
+      <div class="avatar-opt" data-av="🐳" onclick="pickAvatar(this)" title="Whale Shark">🐳</div>
+    </div>
+    <div class="mt-16">
+      <button class="btn btn-primary" onclick="saveName()">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                  MODE SELECT                            -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="screen hidden" id="screen-mode">
+  <button class="btn btn-icon page-back" onclick="sfx('back');showScreen('screen-name')">←</button>
+  <span class="page-title">Game Mode</span>
+  <div class="mode-cards mt-16">
+    <div class="mode-card" onclick="sfx('click');startSolo()">
+      <div class="mode-icon">🔬</div>
+      <div class="mode-info">
+        <h3>Solo Expedition</h3>
+        <p>Dive alone into the ocean. Identify species, complete missions, and build your research files.</p>
+        <span class="mode-badge badge-solo">SOLO</span>
+      </div>
+    </div>
+    <div class="mode-card" onclick="sfx('click');showScreen('screen-host-join')">
+      <div class="mode-icon">💑</div>
+      <div class="mode-info">
+        <h3>Partner Dive</h3>
+        <p>Explore together across two devices. Create a room and share the code with your partner.</p>
+        <span class="mode-badge badge-multi">MULTIPLAYER</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--               HOST / JOIN SCREEN                        -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="screen hidden" id="screen-host-join">
+  <button class="btn btn-icon page-back" onclick="sfx('back');showScreen('screen-mode')">←</button>
+  <span class="page-title">Partner Dive</span>
+  <div class="flex-gap mt-16">
+    <div class="card">
+      <div class="card-title">🏠 Host a Room</div>
+      <p class="text-muted mb-12">Create a room and share the code with your partner.</p>
+      <button class="btn btn-primary" onclick="hostRoom()">Create Room</button>
+    </div>
+    <div class="card">
+      <div class="card-title">🔗 Join a Room</div>
+      <label class="field-label">Room Code</label>
+      <input class="text-input" id="input-join-code" placeholder="ABCD" maxlength="4" 
+             style="text-transform:uppercase;letter-spacing:0.4rem;font-size:1.6rem;text-align:center;"
+             oninput="this.value=this.value.toUpperCase()">
+      <div class="mt-12">
+        <button class="btn btn-secondary" onclick="joinRoom()">Join Room</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                   LOBBY SCREEN                          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="screen hidden" id="screen-lobby">
+  <button class="btn btn-icon page-back" onclick="sfx('back');leaveLobby()">←</button>
+  <span class="page-title">Dive Lobby</span>
+  <div class="card mt-16" style="max-width:400px;">
+    <div class="card-title">🌊 Room Code</div>
+    <div class="room-code-box" id="lobby-code">----</div>
+    <p class="text-muted text-center mb-12" style="font-size:0.78rem;">Share this code with your partner!</p>
+    <button class="btn btn-sm btn-ghost" onclick="copyRoomCode()" style="margin-bottom:16px;">📋 Copy Code</button>
+    <div class="divider"></div>
+    <div class="card-title mt-12">👥 Divers</div>
+    <div id="lobby-players"></div>
+    <div class="divider"></div>
+    <div id="lobby-status" class="text-muted text-center" style="font-size:0.8rem;margin-bottom:12px;">
+      <div class="loading-ring"></div>Waiting for partner…
+    </div>
+    <button class="btn btn-primary hidden" id="btn-start-lobby" onclick="startFromLobby()">🤿 Start Dive Together</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                MISSION SELECT                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="screen hidden" id="screen-missions">
+  <button class="btn btn-icon page-back" onclick="sfx('back');showScreen('screen-mode')">←</button>
+  <span class="page-title">Choose Mission</span>
+  <div class="missions-list mt-16" id="missions-list"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                   GAME SCREEN                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="game-wrap" class="hidden">
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-block">
+      <div class="hud-label">Coins</div>
+      <div class="hud-val" id="hud-score">🪙 0</div>
+      <div class="xp-bar"><div class="xp-fill" id="hud-xp" style="width:0%"></div></div>
+    </div>
+    <div class="hud-block hud-center">
+      <div class="hud-mission" id="hud-mission">--</div>
+      <div class="hud-partner" id="hud-partner" style="display:none"></div>
+    </div>
+    <div class="hud-block" style="align-items:flex-end">
+      <div class="hud-label">Level</div>
+      <div class="hud-val" id="hud-level">⭐ 1</div>
+    </div>
+  </div>
+
+  <!-- Ocean Scene -->
+  <div id="ocean-scene">
+    <div class="depth-grad"></div>
+    <div class="particle-scene" id="scene-particles"></div>
+    <div id="animal-layer"></div>
+    <div id="scan-layer"></div>
+  </div>
+
+  <!-- Objectives -->
+  <div id="obj-panel">
+    <div class="obj-tab" onclick="toggleObjPanel()">TASKS</div>
+    <div class="obj-title">📋 Objectives</div>
+    <div id="obj-list"></div>
+    <div class="obj-progress" id="obj-progress"></div>
+  </div>
+
+  <!-- Chat bubble icon + drawer -->
+  <div id="chat-bubble" onclick="toggleChat()" style="display:none">💬<span id="chat-badge" class="chat-badge badge-hide">0</span></div>
+  <div id="chat-panel" class="chat-closed">
+    <div class="chat-header">
+      <span class="chat-title">💬 Radio</span>
+      <button class="chat-close-btn" onclick="toggleChat()">✕</button>
+    </div>
+    <div class="chat-msgs" id="chat-msgs"></div>
+    <div class="chat-row">
+      <input class="chat-in" id="chat-in" placeholder="Message partner…" maxlength="80"
+             onkeydown="if(event.key==='Enter'){sendChat();}">
+      <button class="btn btn-icon" onclick="sendChat()">📡</button>
+    </div>
+  </div>
+
+  <!-- Info Popup -->
+  <div id="info-popup" class="hidden">
+    <div class="popup-top">
+      <div class="popup-emoji" id="popup-emoji">🐟</div>
+      <div class="popup-names">
+        <div class="popup-common" id="popup-name">Fish</div>
+        <div class="popup-sci" id="popup-sci">Species name</div>
+      </div>
+      <div class="popup-close" onclick="closePopup()">✕</div>
+    </div>
+    <div class="popup-fact" id="popup-fact">Loading…</div>
+    <div class="popup-tags" id="popup-tags"></div>
+    <div class="popup-btns">
+      <button class="btn btn-primary btn-sm" id="popup-tag-btn" onclick="tagCurrentAnimal()">🏷️ Tag & Record</button>
+      <button class="btn btn-secondary btn-sm" onclick="closePopup()">Release</button>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div id="toolbar">
+    <button class="tool-btn active" id="tool-scan" onclick="setTool('scan')">
+      <span class="tool-icon">🔬</span>
+      <span class="tool-label">Scan</span>
+    </button>
+    <button class="tool-btn" id="tool-net" onclick="setTool('net')">
+      <span class="tool-icon">🪤</span>
+      <span class="tool-label">Net</span>
+    </button>
+    <button class="tool-btn" id="tool-photo" onclick="setTool('photo')">
+      <span class="tool-icon">📷</span>
+      <span class="tool-label">Photo</span>
+    </button>
+    <button class="tool-btn" id="tool-sonar" onclick="pingsonar()">
+      <span class="tool-icon">📡</span>
+      <span class="tool-label">Sonar</span>
+    </button>
+    <button class="tool-btn" id="tool-menu" onclick="pauseGame()">
+      <span class="tool-icon">☰</span>
+      <span class="tool-label">Menu</span>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                 RESULTS SCREEN                          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="screen hidden" id="screen-results">
+  <div class="result-hero">
+    <div class="result-icon" id="result-icon">🏆</div>
+    <div class="result-title" id="result-title">Expedition Complete!</div>
+    <div class="result-sub" id="result-sub">Great work, Dr.</div>
+  </div>
+  <div class="score-big" id="result-score">0</div>
+  <div class="stats-grid" id="result-stats"></div>
+  <div class="findings-wrap">
+    <div class="findings-title">🔬 Species Recorded</div>
+    <div class="findings-chips" id="findings-chips"></div>
+  </div>
+  <div class="result-btns">
+    <button class="btn btn-primary" onclick="sfx('click');replayMission()">🔄 Dive Again</button>
+    <button class="btn btn-secondary" onclick="sfx('click');showScreen('screen-missions')">📋 Choose Mission</button>
+    <button class="btn btn-ghost" onclick="sfx('click');showScreen('screen-title')">🏠 Surface</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                    CODEX SCREEN                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="screen hidden" id="screen-codex">
+  <button class="btn btn-icon page-back" onclick="sfx('back');showScreen('screen-title')">←</button>
+  <span class="page-title">Field Codex</span>
+  <div class="codex-grid mt-16" id="codex-grid"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                  SETTINGS SCREEN                        -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="screen hidden" id="screen-settings">
+  <button class="btn btn-icon page-back" onclick="sfx('back');goBackFromSettings()">←</button>
+  <span class="page-title">Settings</span>
+
+  <div class="settings-section mt-16">
+    <div class="settings-section-title">🔊 Audio</div>
+    <div class="setting-row">
+      <div class="setting-left">
+        <div class="setting-icon">🔈</div>
+        <div class="setting-info"><h4>Sound Effects</h4><p>Clicks, splashes & discoveries</p></div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="set-sfx" checked onchange="saveSettings()">
+        <div class="toggle-track"></div>
+      </label>
+    </div>
+    <div class="setting-row">
+      <div class="setting-left">
+        <div class="setting-icon">🎵</div>
+        <div class="setting-info"><h4>Ambient Music</h4><p>Ocean atmosphere sounds</p></div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="set-music" checked onchange="toggleMusic()">
+        <div class="toggle-track"></div>
+      </label>
+    </div>
+    <div class="setting-row">
+      <div class="setting-left">
+        <div class="setting-icon">🔉</div>
+        <div class="setting-info"><h4>Master Volume</h4><p id="vol-display">80%</p></div>
+      </div>
+      <input type="range" class="range-sl" id="set-volume" min="0" max="100" value="80"
+             oninput="updateVolume(this.value)" style="width:120px;">
+    </div>
+    <div class="setting-row">
+      <div class="setting-left">
+        <div class="setting-icon">📳</div>
+        <div class="setting-info"><h4>Haptic Feedback</h4><p>Vibration on discover</p></div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="set-haptic" checked onchange="saveSettings()">
+        <div class="toggle-track"></div>
+      </label>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">🎮 Gameplay</div>
+    <div class="setting-row">
+      <div class="setting-left">
+        <div class="setting-icon">⏱️</div>
+        <div class="setting-info"><h4>Mission Timer</h4><p>Time limit per dive</p></div>
+      </div>
+      <div class="select-row">
+        <div class="sel-opt active" data-timer="300" onclick="setTimer(this)">5m</div>
+        <div class="sel-opt" data-timer="420" onclick="setTimer(this)">7m</div>
+        <div class="sel-opt" data-timer="600" onclick="setTimer(this)">10m</div>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-left">
+        <div class="setting-icon">🐠</div>
+        <div class="setting-info"><h4>Animal Density</h4><p>How crowded the ocean is</p></div>
+      </div>
+      <div class="select-row">
+        <div class="sel-opt" data-density="low" onclick="setDensity(this)">Low</div>
+        <div class="sel-opt active" data-density="med" onclick="setDensity(this)">Med</div>
+        <div class="sel-opt" data-density="high" onclick="setDensity(this)">High</div>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-left">
+        <div class="setting-icon">💡</div>
+        <div class="setting-info"><h4>Show Hints</h4><p>Identification guidance</p></div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="set-hints" checked onchange="saveSettings()">
+        <div class="toggle-track"></div>
+      </label>
+    </div>
+    <div class="setting-row">
+      <div class="setting-left">
+        <div class="setting-icon">🌊</div>
+        <div class="setting-info"><h4>Difficulty</h4><p>Animal behaviour & scoring</p></div>
+      </div>
+      <div class="select-row">
+        <div class="sel-opt" data-diff="easy" onclick="setDiff(this)">Easy</div>
+        <div class="sel-opt active" data-diff="normal" onclick="setDiff(this)">Normal</div>
+        <div class="sel-opt" data-diff="hard" onclick="setDiff(this)">Hard</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">🎨 Display</div>
+    <div class="setting-row">
+      <div class="setting-left">
+        <div class="setting-icon">✨</div>
+        <div class="setting-info"><h4>Particle Effects</h4><p>Floating ocean particles</p></div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="set-particles" checked onchange="saveSettings()">
+        <div class="toggle-track"></div>
+      </label>
+    </div>
+    <div class="setting-row">
+      <div class="setting-left">
+        <div class="setting-icon">🫧</div>
+        <div class="setting-info"><h4>Bubbles</h4><p>Animated bubble effects</p></div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="set-bubbles" checked onchange="saveSettings()">
+        <div class="toggle-track"></div>
+      </label>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">📊 Progress</div>
+    <div class="setting-row">
+      <div class="setting-left">
+        <div class="setting-icon">🗑️</div>
+        <div class="setting-info"><h4>Reset Progress</h4><p>Clear all saved data</p></div>
+      </div>
+      <button class="btn btn-sm" style="background:rgba(255,107,107,0.1);color:var(--coral);border:1px solid rgba(255,107,107,0.3);" onclick="resetProgress()">Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                 PAUSE MENU OVERLAY                      -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="pause-overlay" style="display:none;position:fixed;inset:0;z-index:80;
+  background:rgba(1,12,24,0.92);backdrop-filter:blur(10px);
+  display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:20px;">
+  <div style="font-family:'Cinzel',serif;font-size:1.5rem;margin-bottom:8px;color:var(--glow);">⏸ Paused</div>
+  <button class="btn btn-primary" style="max-width:300px;" onclick="resumeGame()">▶️ Resume Dive</button>
+  <button class="btn btn-secondary" style="max-width:300px;" onclick="sfx('click');showScreen('screen-settings');pauseOverlayRef=true;">⚙️ Settings</button>
+  <button class="btn btn-ghost" style="max-width:300px;" onclick="abandonMission()">🏠 Abandon Dive</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  GAME DATA
+// ═══════════════════════════════════════════════════════════
+
+const ANIMALS = [
+  { id:'dolphin', e:'🐬', name:'Bottlenose Dolphin', sci:'Tursiops truncatus',
+    fact:'Bottlenose dolphins are among the most intelligent animals on Earth. They use a sophisticated echolocation system, emitting clicks that bounce off objects to map their environment. They have been documented using sea sponges as tools to protect their snouts while foraging on the seafloor — a behaviour learned and passed between generations.',
+    tags:['Mammal','Toothed Whale','Coastal','Intelligent','Social'], zone:'open', rarity:3, pts:120 },
+  { id:'clownfish', e:'🐠', name:'Clownfish', sci:'Amphiprioninae sp.',
+    fact:'Clownfish live in a fascinating symbiosis with sea anemones. The mucus coating on their skin protects them from the anemone\'s stinging tentacles. All clownfish are born male; the dominant fish in a group can change sex to become female when needed — a process called sequential hermaphroditism.',
+    tags:['Fish','Reef','Symbiotic','Territorial'], zone:'reef', rarity:2, pts:80 },
+  { id:'shark', e:'🦈', name:'Great White Shark', sci:'Carcharodon carcharias',
+    fact:'Great white sharks are apex predators with electroreceptors called ampullae of Lorenzini that detect the electrical fields generated by other animals\' heartbeats. Their teeth are not anchored in bone but held in the gum — they lose and regrow thousands of teeth over a lifetime. They can swim at speeds exceeding 56 km/h.',
+    tags:['Shark','Apex Predator','Endangered','Migratory'], zone:'open', rarity:5, pts:300 },
+  { id:'turtle', e:'🐢', name:'Green Sea Turtle', sci:'Chelonia mydas',
+    fact:'Green sea turtles navigate the open ocean using the Earth\'s magnetic field as a GPS system, returning to the exact beach where they were born to nest — sometimes after 30+ years. They can hold their breath for up to 7 hours during sleep. Their name comes from the greenish fat beneath their shell, not their skin colour.',
+    tags:['Reptile','Endangered','Migratory','Ancient'], zone:'reef', rarity:4, pts:200 },
+  { id:'octopus', e:'🐙', name:'Giant Pacific Octopus', sci:'Enteroctopus dofleini',
+    fact:'The giant Pacific octopus has three hearts, blue blood, and nine brains — one central brain and one in each of its eight arms. Each arm can taste, feel, and act semi-independently. They are master camouflagers, changing both colour and skin texture in milliseconds. Their lifespan is only 3–5 years despite their remarkable intelligence.',
+    tags:['Mollusc','Invertebrate','Intelligent','Camouflage'], zone:'rocky', rarity:4, pts:220 },
+  { id:'whale', e:'🐋', name:'Blue Whale', sci:'Balaenoptera musculus',
+    fact:'The blue whale is the largest animal ever known to have existed, reaching up to 30 metres long and 170 tonnes. Their hearts are the size of a small car and pump 220 litres of blood per beat. Their calls, at 188 decibels, are the loudest sounds produced by any animal — audible across entire ocean basins.',
+    tags:['Mammal','Baleen Whale','Endangered','Largest Animal'], zone:'deep', rarity:6, pts:500 },
+  { id:'seahorse', e:'🦭', name:'Seahorse', sci:'Hippocampus sp.',
+    fact:'Seahorses are unique among fish — they are monogamous, mating for life, and the males carry the pregnancy. The male has a brood pouch where the female deposits eggs; he then fertilises them, carries them for 2–4 weeks, and gives birth to up to 1,500 young. They anchor themselves to coral with their prehensile tails to avoid being swept away.',
+    tags:['Fish','Reef','Unique','Slow-moving'], zone:'reef', rarity:3, pts:150 },
+  { id:'jellyfish', e:'🪼', name:'Moon Jellyfish', sci:'Aurelia aurita',
+    fact:'Moon jellyfish have no brain, no heart, no blood, and no bones — yet they are among the ocean\'s most successful predators. Their transparent bodies are 95% water. Remarkably, the species Turritopsis dohrnii (the immortal jellyfish) can reverse its life cycle and revert to juvenile form after reaching adulthood — potentially living forever.',
+    tags:['Cnidarian','Invertebrate','Bioluminescent','Ancient'], zone:'open', rarity:2, pts:70 },
+  { id:'crab', e:'🦀', name:'Blue Crab', sci:'Callinectes sapidus',
+    fact:'Blue crabs navigate using a combination of water current sensing, chemical detection, and polarised light. They are capable of running sideways at impressive speeds due to the arrangement of their legs. Their blood contains copper-based haemocyanin instead of haemoglobin, making it pale blue. They moult their entire shell to grow.',
+    tags:['Crustacean','Invertebrate','Estuarine','Commercially Important'], zone:'rocky', rarity:2, pts:60 },
+  { id:'lobster', e:'🦞', name:'American Lobster', sci:'Homarus americanus',
+    fact:'Lobsters are biologically immortal — they do not show signs of aging and grow larger each year. They release urine from their faces to communicate, fight territorial disputes, and attract mates. Their claws can exert forces up to 100 pounds of pressure. The largest lobster ever recorded weighed 20 kg and was estimated to be over 100 years old.',
+    tags:['Crustacean','Invertebrate','Long-lived','Deep-water'], zone:'rocky', rarity:3, pts:130 },
+  { id:'whale_shark', e:'🐟', name:'Whale Shark', sci:'Rhincodon typus',
+    fact:'The whale shark is the largest fish in the ocean, growing up to 18 metres, yet feeds exclusively on tiny plankton, small fish, and fish eggs through filter feeding. They have approximately 3,000 tiny teeth but don\'t use them to eat. The pattern of spots on a whale shark is unique to each individual, like a fingerprint, used by scientists for identification.',
+    tags:['Shark','Filter Feeder','Endangered','Gentle Giant'], zone:'open', rarity:5, pts:350 },
+  { id:'eel', e:'🐍', name:'Moray Eel', sci:'Muraenidae sp.',
+    fact:'Moray eels have two sets of jaws — their regular jaw and a second set of "pharyngeal jaws" hidden in their throat that shoot forward to grab prey, similar to the creature in the Alien films. Unlike other fish, they breathe by opening and closing their mouths to pump water over their gills — which is why they appear to be perpetually yawning or threatening.',
+    tags:['Fish','Reef','Predator','Nocturnal'], zone:'reef', rarity:3, pts:140 },
+  { id:'seahorse2', e:'🐡', name:'Pufferfish', sci:'Tetraodontidae sp.',
+    fact:'Pufferfish inflate by rapidly swallowing large amounts of water (or air) to become two or three times their normal size. Their skin and organs contain tetrodotoxin — one of the most potent neurotoxins known, 1,200 times more toxic than cyanide — yet in Japan they are considered a delicacy called fugu, prepared by specially licensed chefs.',
+    tags:['Fish','Toxic','Reef','Defensive'], zone:'reef', rarity:3, pts:160 },
+  { id:'narwhal', e:'🦄', name:'Narwhal', sci:'Monodon monoceros',
+    fact:'The narwhal\'s spiralling "horn" is actually an enlarged tooth — a canine that pierces through the upper lip and can grow up to 3 metres long. It contains millions of nerve endings and is used to sense changes in water temperature, pressure, and particle gradients. Medieval Europeans sold narwhal tusks as genuine unicorn horns, worth more than their weight in gold.',
+    tags:['Mammal','Arctic','Toothed Whale','Rare'], zone:'deep', rarity:5, pts:400 },
+  { id:'starfish', e:'⭐', name:'Crown-of-Thorns Starfish', sci:'Acanthaster planci',
+    fact:'The crown-of-thorns starfish is one of the largest sea stars in the world and feeds exclusively on coral. It digests coral by everting its stomach out of its body and over the coral, secreting digestive enzymes. A single adult can consume 6–10 m² of coral per year. Population explosions of this species have devastated large sections of the Great Barrier Reef.',
+    tags:['Echinoderm','Invertebrate','Reef','Apex Consumer'], zone:'reef', rarity:2, pts:90 },
+  { id:'manatee', e:'🐘', name:'West Indian Manatee', sci:'Trichechus manatus',
+    fact:'Manatees, despite their bulky bodies, are the most closely related living mammals to elephants. They have no natural predators — their leading cause of death is collision with motorboat propellers. They breathe air but can hold their breath for up to 20 minutes. They communicate through chirps, squeaks, and whistles and have excellent long-term memory.',
+    tags:['Mammal','Endangered','Coastal','Gentle'], zone:'open', rarity:4, pts:250 },
+];
+
+const MISSIONS = [
+  {
+    id:'m1', name:'Reef Census', level:'easy', lvlClass:'lvl-easy',
+    desc:'Identify and tag species living in the coral reef ecosystem. Beginners welcome — perfect for your first dive.',
+    time:300, icon:'🪸', targets:['clownfish','turtle','seahorse','crab','eel','seahorse2','starfish'],
+    requiredCount:5, objectives:[
+      {text:'Tag 5 reef species',needed:5,progress:0,type:'tag'},
+      {text:'Photograph a sea turtle',needed:1,progress:0,type:'photo',target:'turtle'},
+      {text:'Scan 3 invertebrates',needed:3,progress:0,type:'scan',filter:'Invertebrate'},
+    ], unlocked:true, xpReward:200
+  },
+  {
+    id:'m2', name:'Open Water Survey', level:'easy', lvlClass:'lvl-easy',
+    desc:'Survey the open pelagic zone. Photograph and record large migratory species as they pass through.',
+    time:300, icon:'🌊', targets:['dolphin','jellyfish','whale_shark','manatee'],
+    requiredCount:4, objectives:[
+      {text:'Tag 4 open-water species',needed:4,progress:0,type:'tag'},
+      {text:'Find a whale shark',needed:1,progress:0,type:'tag',target:'whale_shark'},
+      {text:'Photograph 2 mammals',needed:2,progress:0,type:'photo',filter:'Mammal'},
+    ], unlocked:true, xpReward:250
+  },
+  {
+    id:'m3', name:'Shark Research Programme', level:'medium', lvlClass:'lvl-med',
+    desc:'Conduct critical shark research. Scan and photograph apex predators without disturbing their natural behaviour.',
+    time:420, icon:'🦈', targets:['shark','whale_shark','dolphin','eel','narwhal'],
+    requiredCount:4, objectives:[
+      {text:'Tag a great white shark',needed:1,progress:0,type:'tag',target:'shark'},
+      {text:'Photograph 3 cartilaginous fish',needed:3,progress:0,type:'photo',filter:'Shark'},
+      {text:'Scan 5 total species',needed:5,progress:0,type:'scan'},
+      {text:'Score 800+ points',needed:800,progress:0,type:'score'},
+    ], unlocked:false, xpReward:400
+  },
+  {
+    id:'m4', name:'Deep Sea Expedition', level:'hard', lvlClass:'lvl-hard',
+    desc:'Descend into the depths where rare species lurk. Equipment pressure resistance is critical. Tag the rarest animals in the ocean.',
+    time:420, icon:'🌑', targets:['whale','narwhal','octopus','lobster','shark'],
+    requiredCount:4, objectives:[
+      {text:'Find a blue whale',needed:1,progress:0,type:'tag',target:'whale'},
+      {text:'Tag a narwhal',needed:1,progress:0,type:'tag',target:'narwhal'},
+      {text:'Record 3 deep-water species',needed:3,progress:0,type:'tag'},
+      {text:'Score 1200+ points',needed:1200,progress:0,type:'score'},
+    ], unlocked:false, xpReward:600
+  },
+  {
+    id:'m5', name:'Invertebrate Research', level:'medium', lvlClass:'lvl-med',
+    desc:'Study the ocean\'s most diverse and ancient animals — the invertebrates. Collect detailed specimens and behavioural data.',
+    time:420, icon:'🦑', targets:['octopus','crab','lobster','jellyfish','starfish','seahorse2'],
+    requiredCount:5, objectives:[
+      {text:'Tag 5 invertebrate species',needed:5,progress:0,type:'tag',filter:'Invertebrate'},
+      {text:'Photograph an octopus',needed:1,progress:0,type:'photo',target:'octopus'},
+      {text:'Net 3 crustaceans',needed:3,progress:0,type:'net',filter:'Crustacean'},
+      {text:'Score 600+ points',needed:600,progress:0,type:'score'},
+    ], unlocked:false, xpReward:380
+  },
+  {
+    id:'m6', name:'Full Species Catalogue', level:'hard', lvlClass:'lvl-hard',
+    desc:'The ultimate scientific challenge — catalogue every species in the known marine database. Expert biologists only.',
+    time:600, icon:'📖', targets:ANIMALS.map(a=>a.id),
+    requiredCount:12, objectives:[
+      {text:'Tag 12 different species',needed:12,progress:0,type:'tag'},
+      {text:'Photograph 8 species',needed:8,progress:0,type:'photo'},
+      {text:'Score 2000+ points',needed:2000,progress:0,type:'score'},
+      {text:'Find all 3 endangered mammals',needed:3,progress:0,type:'tag',filter:'Endangered'},
+    ], unlocked:false, xpReward:1000
+  },
+];
+
+// ═══════════════════════════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════════════════════════
+
+let STATE = {
+  playerName: 'Biologist', playerAvatar: '🤿',
+  score: 0, xp: 0, level: 1,
+  settings: { sfx:true, music:true, volume:0.8, haptic:true, hints:true,
+               timer:300, density:'med', difficulty:'normal', particles:true, bubbles:true },
+  codex: {},
+  missions: { m1:false, m2:false, m3:false, m4:false, m5:false, m6:false },
+  totalScore: 0,
+};
+
+let GAME = {
+  active: false, paused: false, missionId: null, mission: null,
+  score: 0, time: 300, timerInterval: null, spawnInterval: null,
+  animals: [], tagged: [], photos: [], nets: [], scanned: [],
+  objectives: [], activeTool: 'scan', currentAnimal: null,
+  multiplayer: false, isHost: false, roomCode: null, partner: null,
+  partnerScore: 0,
+};
+
+let AUDIO = { ctx: null, masterGain: null, musicGain: null, musicNodes: [] };
+let prevScreen = 'screen-title';
+let pauseOverlayRef = false;
+
+// ═══════════════════════════════════════════════════════════
+//  LOAD / SAVE
+// ═══════════════════════════════════════════════════════════
+
+function loadState() {
+  try {
+    const s = localStorage.getItem('bwy_state');
+    if (s) {
+      const parsed = JSON.parse(s);
+      Object.assign(STATE, parsed);
+    }
+  } catch(e) {}
+  applySettings();
+}
+
+function saveState() {
+  try { localStorage.setItem('bwy_state', JSON.stringify(STATE)); } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════
+//  AUDIO ENGINE
+// ═══════════════════════════════════════════════════════════
+
+function initAudio() {
+  if (AUDIO.ctx) return;
+  try {
+    AUDIO.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    AUDIO.masterGain = AUDIO.ctx.createGain();
+    AUDIO.masterGain.gain.value = STATE.settings.volume;
+    AUDIO.masterGain.connect(AUDIO.ctx.destination);
+    AUDIO.musicGain = AUDIO.ctx.createGain();
+    AUDIO.musicGain.gain.value = 0.18;
+    AUDIO.musicGain.connect(AUDIO.masterGain);
+    if (STATE.settings.music) startMusic();
+  } catch(e) {}
+}
+
+function sfx(type) {
+  if (!STATE.settings.sfx) return;
+  initAudio();
+  if (!AUDIO.ctx) return;
+  try {
+    const ctx = AUDIO.ctx;
+    const g = ctx.createGain();
+    g.connect(AUDIO.masterGain);
+    const sounds = {
+      click:    () => { tone(g, 520, 0.06, 'sine', 0.12); },
+      back:     () => { tone(g, 340, 0.06, 'sine', 0.12); tone2(g, 280, 0.03, 0.06, 0.08); },
+      discover: () => {
+        tone(g, 660, 0, 'sine', 0.15); tone2(g, 880, 0.06, 0.06, 0.2);
+        tone2(g, 1100, 0.12, 0.06, 0.15); tone2(g, 1320, 0.18, 0.05, 0.1);
+      },
+      tag:      () => { tone(g, 880, 0, 'square', 0.08, 0.3); tone2(g, 1100, 0.1, 0.04, 0.1); },
+      photo:    () => {
+        const s = ctx.createOscillator(); s.type = 'square'; s.frequency.value = 100;
+        const s2 = ctx.createOscillator(); s2.type = 'square'; s2.frequency.value = 80;
+        [s,s2].forEach(n => n.connect(g));
+        const now = ctx.currentTime;
+        g.gain.setValueAtTime(0.15, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.08);
+        s.start(now); s.stop(now+0.08); s2.start(now+0.02); s2.stop(now+0.1);
+      },
+      net:      () => { tone(g, 200, 0, 'sawtooth', 0.06, 0.25); tone2(g, 150, 0.1, 0.04, 0.1); },
+      scan:     () => {
+        const s = ctx.createOscillator(); s.type = 'sine'; s.frequency.setValueAtTime(1200, ctx.currentTime);
+        s.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.3);
+        s.connect(g); g.gain.setValueAtTime(0.12, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        s.start(); s.stop(ctx.currentTime + 0.3);
+      },
+      sonar:    () => {
+        [0, 0.3, 0.6].forEach((d,i) => {
+          const s = ctx.createOscillator(); s.type = 'sine';
+          s.frequency.value = 800 - i*100; s.connect(g);
+          const now = ctx.currentTime + d;
+          g.gain.setValueAtTime(0.15, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.25);
+          s.start(now); s.stop(now + 0.3);
+        });
+      },
+      bubble:   () => {
+        const s = ctx.createOscillator(); s.type = 'sine';
+        s.frequency.setValueAtTime(600 + Math.random()*400, ctx.currentTime);
+        s.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.15);
+        s.connect(g); g.gain.setValueAtTime(0.08, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+        s.start(); s.stop(ctx.currentTime + 0.2);
+      },
+      warning:  () => {
+        [0, 0.2].forEach(d => {
+          const s = ctx.createOscillator(); s.type = 'square'; s.frequency.value = 220;
+          s.connect(g);
+          g.gain.setValueAtTime(0.12, ctx.currentTime + d);
+          g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d + 0.18);
+          s.start(ctx.currentTime + d); s.stop(ctx.currentTime + d + 0.2);
+        });
+      },
+      level_up: () => {
+        [523, 659, 784, 1047].forEach((f,i) => {
+          const s = ctx.createOscillator(); s.type = 'triangle'; s.frequency.value = f;
+          s.connect(g);
+          const t = ctx.currentTime + i * 0.12;
+          g.gain.setValueAtTime(0.18, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+          s.start(t); s.stop(t + 0.35);
+        });
+      },
+      splash:   () => {
+        const buf = ctx.createBuffer(1, ctx.sampleRate * 0.4, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/data.length, 2);
+        const src = ctx.createBufferSource(); src.buffer = buf;
+        const filter = ctx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 800;
+        src.connect(filter); filter.connect(g);
+        g.gain.setValueAtTime(0.25, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+        src.start(); src.stop(ctx.currentTime + 0.4);
+      },
+    };
+    if (sounds[type]) sounds[type]();
+  } catch(e) {}
+}
+
+function tone(g, freq, delay, type, vol, dur=0.12) {
+  const ctx = AUDIO.ctx;
+  const s = ctx.createOscillator(); s.type = type; s.frequency.value = freq;
+  s.connect(g); const t = ctx.currentTime + delay;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  s.start(t); s.stop(t + dur + 0.01);
+}
+function tone2(g, freq, delay, vol, dur) { tone(g, freq, delay, 'sine', vol, dur); }
+
+function startMusic() {
+  if (!AUDIO.ctx || !STATE.settings.music) return;
+  try {
+    const ctx = AUDIO.ctx;
+    // Generate ambient underwater drone music
+    const drones = [55, 82.4, 110, 164.8];
+    drones.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = i % 2 === 0 ? 'sine' : 'triangle';
+      osc.frequency.value = f;
+      // Slow modulation
+      const lfo = ctx.createOscillator();
+      lfo.frequency.value = 0.05 + i * 0.02;
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.value = f * 0.008;
+      lfo.connect(lfoGain); lfoGain.connect(osc.frequency);
+      osc.connect(AUDIO.musicGain);
+      osc.start();
+      AUDIO.musicNodes.push(osc, lfo);
+      lfo.start();
+    });
+    // Gentle high harmonic shimmer
+    const shimmer = ctx.createOscillator();
+    shimmer.type = 'sine'; shimmer.frequency.value = 1320;
+    const shimGain = ctx.createGain(); shimGain.gain.value = 0.015;
+    shimmer.connect(shimGain); shimGain.connect(AUDIO.musicGain);
+    shimmer.start(); AUDIO.musicNodes.push(shimmer);
+  } catch(e) {}
+}
+
+function stopMusic() {
+  AUDIO.musicNodes.forEach(n => { try { n.stop(); } catch(e) {} });
+  AUDIO.musicNodes = [];
+}
+
+function toggleMusic() {
+  STATE.settings.music = document.getElementById('set-music').checked;
+  if (STATE.settings.music) { initAudio(); startMusic(); }
+  else stopMusic();
+  saveSettings();
+}
+
+function updateVolume(v) {
+  STATE.settings.volume = v / 100;
+  document.getElementById('vol-display').textContent = v + '%';
+  if (AUDIO.masterGain) AUDIO.masterGain.gain.value = STATE.settings.volume;
+  saveSettings();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  HAPTIC
+// ═══════════════════════════════════════════════════════════
+
+function haptic(pattern) {
+  if (!STATE.settings.haptic) return;
+  try { navigator.vibrate(pattern || 40); } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SCREEN MANAGEMENT
+// ═══════════════════════════════════════════════════════════
+
+function showScreen(id) {
+  prevScreen = document.querySelector('.screen:not(.hidden)')?.id || 'screen-title';
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('hidden');
+  // Hide chat when going to menus
+  document.getElementById('chat-bubble').style.display = 'none';
+  document.getElementById('chat-panel').classList.add('chat-closed');
+  // Refresh specific screens
+  if (id === 'screen-missions') renderMissions();
+  if (id === 'screen-codex') renderCodex();
+  if (id === 'screen-settings') loadSettingsUI();
+}
+
+function goBackFromSettings() {
+  if (pauseOverlayRef) { pauseOverlayRef = false; showPauseMenu(); }
+  else showScreen(prevScreen || 'screen-title');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PROFILE
+// ═══════════════════════════════════════════════════════════
+
+let selectedAvatar = '🤿';
+
+function pickAvatar(el) {
+  document.querySelectorAll('.avatar-opt').forEach(a => a.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedAvatar = el.dataset.av;
+  sfx('click');
+}
+
+function saveName() {
+  const name = document.getElementById('input-name').value.trim();
+  if (!name) { toast('Enter your name first, Doctor 🩺', 'warn'); return; }
+  STATE.playerName = name;
+  STATE.playerAvatar = selectedAvatar;
+  saveState();
+  sfx('click');
+  showScreen('screen-mode');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MODE SELECTION
+// ═══════════════════════════════════════════════════════════
+
+function startSolo() {
+  GAME.multiplayer = false;
+  GAME.isHost = false;
+  GAME.roomCode = null;
+  GAME.partner = null;
+  showScreen('screen-missions');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MULTIPLAYER (simulated peer via shared localStorage)
+// ═══════════════════════════════════════════════════════════
+
+let lobbyPollInterval = null;
+
+function genCode() {
+  const chars = 'ABCDEFHJKLMNPRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+function hostRoom() {
+  sfx('click');
+  const code = genCode();
+  GAME.roomCode = code;
+  GAME.isHost = true;
+  GAME.multiplayer = true;
+  GAME.partner = null;
+  // Write to shared storage
+  const roomData = {
+    code, host: { name: STATE.playerName, avatar: STATE.playerAvatar },
+    guest: null, missionId: null, started: false, ts: Date.now()
+  };
+  localStorage.setItem('bwy_room_' + code, JSON.stringify(roomData));
+  showScreen('screen-lobby');
+  renderLobby();
+  startLobbyPoll();
+}
+
+function joinRoom() {
+  const code = document.getElementById('input-join-code').value.trim().toUpperCase();
+  if (code.length < 4) { toast('Enter a 4-letter room code', 'warn'); return; }
+  const raw = localStorage.getItem('bwy_room_' + code);
+  if (!raw) { toast('Room not found. Check the code! 🔍', 'warn'); sfx('warning'); return; }
+  const room = JSON.parse(raw);
+  if (room.guest) { toast('Room is full!', 'warn'); return; }
+  sfx('splash');
+  GAME.roomCode = code;
+  GAME.isHost = false;
+  GAME.multiplayer = true;
+  room.guest = { name: STATE.playerName, avatar: STATE.playerAvatar };
+  localStorage.setItem('bwy_room_' + code, JSON.stringify(room));
+  GAME.partner = room.host;
+  showScreen('screen-lobby');
+  renderLobby();
+  startLobbyPoll();
+}
+
+function startLobbyPoll() {
+  clearInterval(lobbyPollInterval);
+  lobbyPollInterval = setInterval(() => {
+    if (!GAME.roomCode) return;
+    const raw = localStorage.getItem('bwy_room_' + GAME.roomCode);
+    if (!raw) { clearInterval(lobbyPollInterval); return; }
+    const room = JSON.parse(raw);
+    if (GAME.isHost) {
+      GAME.partner = room.guest || null;
+      renderLobby();
+      if (room.started && room.missionId) {
+        clearInterval(lobbyPollInterval);
+        const m = MISSIONS.find(m => m.id === room.missionId);
+        if (m) startMission(m);
+      }
+    } else {
+      GAME.partner = room.host;
+      renderLobby();
+      if (room.started && room.missionId) {
+        clearInterval(lobbyPollInterval);
+        const m = MISSIONS.find(m => m.id === room.missionId);
+        if (m) startMission(m);
+      }
+    }
+  }, 1200);
+}
+
+function renderLobby() {
+  document.getElementById('lobby-code').textContent = GAME.roomCode;
+  const raw = localStorage.getItem('bwy_room_' + GAME.roomCode);
+  const room = raw ? JSON.parse(raw) : {};
+  const hasGuest = !!room.guest;
+  const pl = document.getElementById('lobby-players');
+  const hostP = room.host || { name: STATE.playerName, avatar: STATE.playerAvatar };
+  const guestP = room.guest;
+  pl.innerHTML = `
+    <div class="player-slot">
+      <div class="slot-avatar">${hostP.avatar}</div>
+      <div class="slot-info">
+        <div class="slot-name">${hostP.name}</div>
+        <div class="slot-role">Marine Biologist</div>
+      </div>
+      <span class="slot-badge badge-host">HOST</span>
+    </div>
+    <div class="player-slot" style="${!guestP ? 'opacity:0.4;' : ''}">
+      <div class="slot-avatar">${guestP ? guestP.avatar : '?'}</div>
+      <div class="slot-info">
+        <div class="slot-name">${guestP ? guestP.name : 'Waiting…'}</div>
+        <div class="slot-role">${guestP ? 'Marine Biologist' : 'Share the room code!'}</div>
+      </div>
+      ${guestP ? '<span class="slot-badge badge-crew">JOINED</span>' : '<span class="slot-badge badge-waiting">OPEN</span>'}
+    </div>`;
+  const statusEl = document.getElementById('lobby-status');
+  const startBtn = document.getElementById('btn-start-lobby');
+  if (hasGuest && GAME.isHost) {
+    statusEl.innerHTML = `<span class="dot-live"></span>&nbsp;${room.guest.name} is ready to dive!`;
+    startBtn.classList.remove('hidden');
+  } else if (!hasGuest) {
+    statusEl.innerHTML = `<div class="loading-ring"></div>Waiting for partner…`;
+    startBtn.classList.add('hidden');
+  } else {
+    statusEl.innerHTML = `<span class="dot-live"></span>&nbsp;Waiting for host to start…`;
+    startBtn.classList.add('hidden');
+  }
+}
+
+function startFromLobby() {
+  clearInterval(lobbyPollInterval);
+  sfx('splash');
+  showScreen('screen-missions');
+}
+
+function leaveLobby() {
+  clearInterval(lobbyPollInterval);
+  if (GAME.roomCode) localStorage.removeItem('bwy_room_' + GAME.roomCode);
+  GAME.multiplayer = false; GAME.roomCode = null;
+  showScreen('screen-mode');
+}
+
+function copyRoomCode() {
+  try { navigator.clipboard.writeText(GAME.roomCode); } catch(e) {}
+  toast('Code copied! 📋 Share with your partner', 'info');
+  sfx('click');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MISSION SELECT
+// ═══════════════════════════════════════════════════════════
+
+function renderMissions() {
+  // Unlock missions based on completions
+  let completed = 0;
+  MISSIONS.forEach(m => { if (STATE.missions[m.id]) completed++; });
+  MISSIONS[2].unlocked = completed >= 1;
+  MISSIONS[4].unlocked = completed >= 1;
+  MISSIONS[3].unlocked = completed >= 2;
+  MISSIONS[5].unlocked = completed >= 3;
+
+  const list = document.getElementById('missions-list');
+  list.innerHTML = MISSIONS.map(m => `
+    <div class="mission-card ${m.unlocked ? '' : 'locked'}" onclick="${m.unlocked ? `selectMission('${m.id}')` : 'toast(\"Complete earlier missions to unlock!\",\"warn\")'}">
+      <div class="mc-head">
+        <div class="mc-title">${m.icon} ${m.name}</div>
+        <div class="mc-level ${m.lvlClass}">${m.level.toUpperCase()}</div>
+      </div>
+      <div class="mc-desc">${m.desc}</div>
+      <div class="mc-meta">
+        <span class="mc-chip">⏱ ${Math.floor(m.time/60)} min</span>
+        <span class="mc-chip">🎯 ${m.requiredCount} species</span>
+        <span class="mc-chip">⭐ ${m.xpReward} XP</span>
+        ${STATE.missions[m.id] ? '<span class="mc-chip" style="color:var(--biolum)">✓ Completed</span>' : ''}
+        ${!m.unlocked ? '<span class="mc-chip" style="color:var(--coral)">🔒 Locked</span>' : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectMission(id) {
+  sfx('splash');
+  haptic([30, 30, 30]);
+  const m = MISSIONS.find(m => m.id === id);
+  if (!m) return;
+  if (GAME.multiplayer && GAME.isHost) {
+    const raw = localStorage.getItem('bwy_room_' + GAME.roomCode);
+    if (raw) {
+      const room = JSON.parse(raw);
+      room.missionId = id; room.started = true;
+      localStorage.setItem('bwy_room_' + GAME.roomCode, JSON.stringify(room));
+    }
+  }
+  startMission(m);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GAME ENGINE
+// ═══════════════════════════════════════════════════════════
+
+function startMission(m) {
+  // Deep copy mission objectives
+  GAME.mission = JSON.parse(JSON.stringify(m));
+  GAME.missionId = m.id;
+  GAME.score = 0;
+  GAME.time = 0;
+  GAME.tagged = []; GAME.photos = []; GAME.nets = []; GAME.scanned = [];
+  GAME.animals = [];
+  GAME.active = true; GAME.paused = false;
+  GAME.activeTool = 'scan';
+  GAME.currentAnimal = null;
+
+  // Show game wrap
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.getElementById('game-wrap').classList.remove('hidden');
+  document.getElementById('hud').style.display = '';
+  document.getElementById('toolbar').style.display = '';
+  document.getElementById('chat-bubble').style.display = 'flex';
+
+  // Multiplayer UI
+  if (GAME.multiplayer) {
+    document.getElementById('hud-partner').style.display = '';
+    document.getElementById('hud-partner').textContent = `🤝 ${GAME.partner?.name || 'Partner'} is diving`;
+    startMultiplayerSync();
+  }
+
+  // HUD
+  updateHUD();
+  document.getElementById('hud-mission').textContent = m.icon + ' ' + m.name;
+
+  // Objectives
+  renderObjectives();
+
+  // Spawn animals
+  spawnInitialAnimals();
+  GAME.spawnInterval = setInterval(() => {
+    if (!GAME.paused && GAME.active) {
+      if (GAME.animals.length < getDensityCount()) spawnAnimal();
+    }
+  }, 3500);
+
+  // No timer — open world, explore freely!
+
+  // Scene particles
+  buildSceneParticles();
+
+  // Chat system
+  if (GAME.multiplayer) {
+    addChatMsg('sys', '🌊 Dive started! Work together to tag species.');
+  }
+
+  sfx('splash');
+  haptic([40, 20, 60]);
+  toast(`${m.icon} Mission: ${m.name}`, 'info');
+}
+
+function getDensityCount() {
+  const d = STATE.settings.density;
+  return d === 'low' ? 4 : d === 'high' ? 9 : 6;
+}
+
+function spawnInitialAnimals() {
+  const count = getDensityCount();
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => { if (GAME.active) spawnAnimal(); }, i * 400 + Math.random() * 300);
+  }
+}
+
+function spawnAnimal() {
+  const pool = GAME.mission.targets;
+  const id = pool[Math.floor(Math.random() * pool.length)];
+  const data = ANIMALS.find(a => a.id === id);
+  if (!data) return;
+
+  const scene = document.getElementById('ocean-scene');
+  const W = scene.clientWidth, H = scene.clientHeight;
+  const el = document.createElement('div');
+  el.className = 'animal-ent';
+  const speed = 4 + Math.random() * 5;
+  el.style.setProperty('--spd', speed + 's');
+  el.style.left = (Math.random() * (W - 80) + 20) + 'px';
+  el.style.top = (Math.random() * (H - 160) + 60) + 'px';
+  el.textContent = data.e;
+  el.dataset.animalId = id;
+
+  el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    onAnimalTap(el, data);
+  });
+  el.addEventListener('touchstart', (e) => {
+    e.stopPropagation();
+    onAnimalTap(el, data);
+  }, { passive: true });
+
+  document.getElementById('animal-layer').appendChild(el);
+  // Track
+  const entry = { id, el, data };
+  GAME.animals.push(entry);
+
+  // Random drift movement
+  driftAnimal(el, W, H);
+
+  // Hint
+  if (STATE.settings.hints && !STATE.codex[id]) {
+    setTimeout(() => {
+      if (el.parentNode) toast(`💡 ${data.name} spotted nearby!`, 'info');
+    }, 1000);
+  }
+}
+
+function driftAnimal(el, W, H) {
+  let x = parseFloat(el.style.left);
+  let y = parseFloat(el.style.top);
+  const speed = 0.4 + Math.random() * 0.8;
+  let dx = (Math.random() - 0.5) * speed;
+  let dy = (Math.random() - 0.5) * speed * 0.5;
+
+  function move() {
+    if (!el.parentNode || !GAME.active || GAME.paused) return;
+    x += dx; y += dy;
+    if (x < 10 || x > W - 80) dx *= -1;
+    if (y < 50 || y > H - 120) dy *= -1;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    // Random direction change
+    if (Math.random() < 0.005) { dx = (Math.random()-0.5)*speed*2; dy = (Math.random()-0.5)*speed; }
+    requestAnimationFrame(move);
+  }
+  requestAnimationFrame(move);
+}
+
+function onAnimalTap(el, data) {
+  if (!GAME.active || GAME.paused) return;
+  haptic(30);
+
+  const tool = GAME.activeTool;
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+
+  if (tool === 'scan') {
+    sfx('scan');
+    spawnScanRing(cx, cy);
+    if (!GAME.scanned.includes(data.id)) GAME.scanned.push(data.id);
+    checkObjectiveProgress();
+    showInfoPopup(data, el);
+  } else if (tool === 'photo') {
+    sfx('photo');
+    haptic([10, 20, 10]);
+    flashScreen();
+    if (!GAME.photos.includes(data.id)) {
+      GAME.photos.push(data.id);
+      addPoints(data.pts * 0.4, '📸 Photo!');
+      checkObjectiveProgress();
+    }
+    showInfoPopup(data, el);
+  } else if (tool === 'net') {
+    sfx('net');
+    if (!GAME.nets.includes(data.id)) {
+      GAME.nets.push(data.id);
+      addPoints(data.pts * 0.3, '🪤 Netted!');
+      checkObjectiveProgress();
+    }
+    // Animal flees
+    el.classList.add('flee');
+    setTimeout(() => { removeAnimal(el, data.id); }, 900);
+    showInfoPopup(data, el);
+  }
+}
+
+function removeAnimal(el, id) {
+  el.remove();
+  const i = GAME.animals.findIndex(a => a.el === el);
+  if (i !== -1) GAME.animals.splice(i, 1);
+}
+
+function spawnScanRing(cx, cy) {
+  const scene = document.getElementById('scan-layer');
+  const ring = document.createElement('div');
+  ring.className = 'scan-ring';
+  ring.style.left = cx + 'px'; ring.style.top = cy + 'px';
+  scene.appendChild(ring);
+  setTimeout(() => ring.remove(), 800);
+}
+
+function flashScreen() {
+  const fl = document.createElement('div');
+  fl.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,0.5);z-index:99;pointer-events:none;animation:fadeFlash 0.3s ease forwards;';
+  const style = document.createElement('style');
+  style.textContent = '@keyframes fadeFlash{to{opacity:0;}}';
+  document.head.appendChild(style);
+  document.body.appendChild(fl);
+  setTimeout(() => { fl.remove(); style.remove(); }, 300);
+}
+
+function showInfoPopup(data, el) {
+  GAME.currentAnimal = { data, el };
+  document.getElementById('popup-emoji').textContent = data.e;
+  document.getElementById('popup-name').textContent = data.name;
+  document.getElementById('popup-sci').textContent = data.sci;
+  document.getElementById('popup-fact').textContent = data.fact;
+  const tagsEl = document.getElementById('popup-tags');
+  tagsEl.innerHTML = data.tags.map(t => `<span class="ptag">${t}</span>`).join('');
+  const alreadyTagged = GAME.tagged.includes(data.id);
+  const tagBtn = document.getElementById('popup-tag-btn');
+  tagBtn.textContent = alreadyTagged ? '✓ Already Recorded' : '🏷️ Tag & Record';
+  tagBtn.disabled = alreadyTagged;
+  tagBtn.style.opacity = alreadyTagged ? '0.5' : '1';
+  document.getElementById('info-popup').classList.remove('hidden');
+  sfx('discover');
+  haptic([20, 10, 40]);
+}
+
+function closePopup() {
+  document.getElementById('info-popup').classList.add('hidden');
+  GAME.currentAnimal = null;
+  sfx('click');
+}
+
+function tagCurrentAnimal() {
+  if (!GAME.currentAnimal) return;
+  const { data, el } = GAME.currentAnimal;
+  if (GAME.tagged.includes(data.id)) return;
+  sfx('tag');
+  haptic([30, 20, 80]);
+  GAME.tagged.push(data.id);
+  // Add to codex
+  STATE.codex[data.id] = (STATE.codex[data.id] || 0) + 1;
+  saveState();
+  addPoints(data.pts, `🏷️ ${data.name} Tagged!`);
+  checkObjectiveProgress();
+  // Tagged animation
+  el.classList.add('tagged');
+  setTimeout(() => { removeAnimal(el, data.id); }, 700);
+  closePopup();
+  // Check win
+  const needed = GAME.mission.requiredCount;
+  if (GAME.tagged.length >= needed) {
+    setTimeout(() => {
+      sfx('level_up');
+      toast(`🎉 All targets tagged! Mission complete!`, 'good');
+      haptic([50, 30, 50, 30, 100]);
+      setTimeout(() => endMission(), 2000);
+    }, 400);
+  }
+}
+
+function setTool(t) {
+  GAME.activeTool = t;
+  ['scan','net','photo'].forEach(id => {
+    document.getElementById('tool-'+id)?.classList.toggle('active', id === t);
+  });
+  sfx('click');
+  const labels = { scan:'🔬 Scan mode — tap to identify', net:'🪤 Net mode — tap to collect', photo:'📷 Photo mode — tap to photograph' };
+  if (labels[t]) toast(labels[t], 'info');
+}
+
+function pingsonar() {
+  sfx('sonar');
+  haptic([10, 10, 10, 10, 10]);
+  // Reveal all animals briefly
+  const layer = document.getElementById('animal-layer');
+  layer.style.filter = 'brightness(2) drop-shadow(0 0 12px var(--glow))';
+  setTimeout(() => layer.style.filter = '', 600);
+  // Hint toast
+  const count = GAME.animals.length;
+  toast(`📡 Sonar: ${count} life forms detected nearby`, 'info');
+}
+
+function toggleObjPanel() {
+  document.getElementById('obj-panel').classList.toggle('collapsed');
+  sfx('click');
+}
+
+function toggleChat() {
+  const panel = document.getElementById('chat-panel');
+  const bubble = document.getElementById('chat-bubble');
+  const isClosed = panel.classList.toggle('chat-closed');
+  if (!isClosed) {
+    // opened — clear badge
+    const badge = document.getElementById('chat-badge');
+    badge.classList.add('badge-hide');
+    badge.textContent = '0';
+    bubble.style.borderColor = 'rgba(0,200,255,0.35)';
+  }
+  sfx('click');
+}
+
+function sendChat() {
+  const el = document.getElementById('chat-in');
+  const msg = el.value.trim();
+  if (!msg) return;
+  el.value = '';
+  sfx('click');
+  addChatMsg('you', msg);
+  // Sync via localStorage
+  if (GAME.roomCode) {
+    const key = 'bwy_chat_' + GAME.roomCode;
+    const msgs = JSON.parse(localStorage.getItem(key) || '[]');
+    msgs.push({ from: STATE.playerName, avatar: STATE.playerAvatar, text: msg, ts: Date.now() });
+    if (msgs.length > 50) msgs.splice(0, msgs.length - 50);
+    localStorage.setItem(key, JSON.stringify(msgs));
+  }
+}
+
+let lastChatTs = 0;
+function startMultiplayerSync() {
+  setInterval(() => {
+    if (!GAME.roomCode) return;
+    // Sync chat
+    const chatKey = 'bwy_chat_' + GAME.roomCode;
+    const msgs = JSON.parse(localStorage.getItem(chatKey) || '[]');
+    const newMsgs = msgs.filter(m => m.ts > lastChatTs && m.from !== STATE.playerName);
+    newMsgs.forEach(m => { addChatMsg('partner', m.text, m.from); lastChatTs = m.ts; });
+    if (newMsgs.length) { sfx('bubble'); }
+    // Sync partner score
+    const scoreKey = 'bwy_score_' + GAME.roomCode + '_' + (GAME.isHost ? 'guest' : 'host');
+    const pScore = localStorage.getItem(scoreKey);
+    if (pScore) {
+      GAME.partnerScore = parseInt(pScore);
+      document.getElementById('hud-partner').textContent = `🤝 ${GAME.partner?.name}: ${GAME.partnerScore}pts`;
+    }
+    // Publish own score
+    const myKey = 'bwy_score_' + GAME.roomCode + '_' + (GAME.isHost ? 'host' : 'guest');
+    localStorage.setItem(myKey, GAME.score);
+  }, 1500);
+}
+
+function addChatMsg(who, text, fromName) {
+  const box = document.getElementById('chat-msgs');
+  const line = document.createElement('div');
+  line.className = 'chat-line';
+  const cls = who === 'you' ? 'chat-from-you' : who === 'partner' ? 'chat-from-partner' : who === 'sys' ? 'chat-from-sys' : 'chat-from-game';
+  const label = who === 'you' ? STATE.playerName : fromName || who;
+  line.innerHTML = `<span class="${cls}">${label}:</span> ${text}`;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+  // Show badge if panel is closed and it's a new message
+  const panel = document.getElementById('chat-panel');
+  if (who === 'partner' && panel.classList.contains('chat-closed')) {
+    const badge = document.getElementById('chat-badge');
+    const count = (parseInt(badge.textContent) || 0) + 1;
+    badge.textContent = count > 9 ? '9+' : count;
+    badge.classList.remove('badge-hide');
+    document.getElementById('chat-bubble').style.borderColor = 'var(--biolum)';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  OBJECTIVES
+// ═══════════════════════════════════════════════════════════
+
+function renderObjectives() {
+  const list = document.getElementById('obj-list');
+  list.innerHTML = GAME.mission.objectives.map((o, i) => {
+    const done = isObjDone(o);
+    return `<div class="obj-item">
+      <div class="obj-dot ${done ? 'done' : ''}">✓</div>
+      <div class="obj-text ${done ? 'done' : ''}">${o.text}</div>
+    </div>`;
+  }).join('');
+  const done = GAME.mission.objectives.filter(o => isObjDone(o)).length;
+  document.getElementById('obj-progress').textContent = `${done}/${GAME.mission.objectives.length}`;
+}
+
+function isObjDone(o) {
+  if (o.type === 'tag') {
+    if (o.target) return GAME.tagged.includes(o.target);
+    if (o.filter) {
+      const matching = GAME.tagged.filter(id => {
+        const a = ANIMALS.find(a => a.id === id);
+        return a && a.tags.includes(o.filter);
+      });
+      return matching.length >= o.needed;
+    }
+    return GAME.tagged.length >= o.needed;
+  }
+  if (o.type === 'photo') {
+    if (o.target) return GAME.photos.includes(o.target);
+    if (o.filter) {
+      const matching = GAME.photos.filter(id => {
+        const a = ANIMALS.find(a => a.id === id);
+        return a && a.tags.includes(o.filter);
+      });
+      return matching.length >= o.needed;
+    }
+    return GAME.photos.length >= o.needed;
+  }
+  if (o.type === 'net') {
+    if (o.filter) {
+      const matching = GAME.nets.filter(id => {
+        const a = ANIMALS.find(a => a.id === id);
+        return a && a.tags.includes(o.filter);
+      });
+      return matching.length >= o.needed;
+    }
+    return GAME.nets.length >= o.needed;
+  }
+  if (o.type === 'scan') {
+    return GAME.scanned.length >= o.needed;
+  }
+  if (o.type === 'score') return GAME.score >= o.needed;
+  return false;
+}
+
+function checkObjectiveProgress() {
+  renderObjectives();
+  const allDone = GAME.mission.objectives.every(o => isObjDone(o));
+  if (allDone && GAME.active) {
+    sfx('level_up');
+    toast('🏆 All objectives complete!', 'good');
+    haptic([50,30,100]);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SCORING
+// ═══════════════════════════════════════════════════════════
+
+function addPoints(pts, label) {
+  const rounded = Math.round(pts);
+  GAME.score += rounded;
+  STATE.totalScore += rounded;
+  STATE.xp += Math.round(pts * 0.1);
+  updateHUD();
+  showFloatingPoints(rounded, label);
+  // Check level up
+  const xpNeeded = STATE.level * 500;
+  if (STATE.xp >= xpNeeded) { STATE.level++; STATE.xp -= xpNeeded; sfx('level_up'); toast(`⬆️ Level ${STATE.level}! More fish await!`, 'good'); }
+}
+
+function showFloatingPoints(pts, label) {
+  const scene = document.getElementById('ocean-scene');
+  const el = document.createElement('div');
+  el.style.cssText = `position:absolute;left:${30+Math.random()*60}%;top:${30+Math.random()*30}%;
+    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1rem;
+    color:var(--biolum);pointer-events:none;z-index:10;
+    animation:floatUp 1.4s ease forwards;white-space:nowrap;`;
+  el.textContent = `+🪙${pts} ${label || ''}`;
+  const style = document.createElement('style');
+  style.textContent = `@keyframes floatUp{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-60px);}}`;
+  document.head.appendChild(style);
+  scene.appendChild(el);
+  setTimeout(() => { el.remove(); style.remove(); }, 1400);
+}
+
+function updateHUD() {
+  document.getElementById('hud-score').textContent = '🪙 ' + GAME.score.toLocaleString();
+  const xpNeeded = STATE.level * 500;
+  document.getElementById('hud-xp').style.width = Math.min(100, (STATE.xp / xpNeeded) * 100) + '%';
+  const lvlEl = document.getElementById('hud-level');
+  if (lvlEl) lvlEl.textContent = '⭐ ' + STATE.level;
+}
+
+// No timer in open world mode — updateTimer removed
+
+// ═══════════════════════════════════════════════════════════
+//  PAUSE
+// ═══════════════════════════════════════════════════════════
+
+function pauseGame() {
+  if (!GAME.active) return;
+  GAME.paused = true;
+  sfx('click');
+  showPauseMenu();
+}
+
+function showPauseMenu() {
+  const el = document.getElementById('pause-overlay');
+  el.style.display = 'flex';
+}
+
+function resumeGame() {
+  GAME.paused = false;
+  document.getElementById('pause-overlay').style.display = 'none';
+  sfx('click');
+}
+
+function abandonMission() {
+  document.getElementById('pause-overlay').style.display = 'none';
+  endMission(true);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  END MISSION
+// ═══════════════════════════════════════════════════════════
+
+function endMission(abandoned=false) {
+  if (!GAME.active) return;
+  GAME.active = false;
+  clearInterval(GAME.timerInterval);
+  clearInterval(GAME.spawnInterval);
+  clearInterval(lobbyPollInterval);
+  sfx('splash');
+  haptic([40,30,80]);
+
+  // Mark completed
+  const objsDone = GAME.mission.objectives.filter(o => isObjDone(o)).length;
+  const allDone = objsDone === GAME.mission.objectives.length;
+  if (allDone && GAME.tagged.length >= GAME.mission.requiredCount) {
+    STATE.missions[GAME.missionId] = true;
+    STATE.totalScore += GAME.score;
+    // XP bonus
+    STATE.xp += GAME.mission.xpReward;
+  }
+  saveState();
+
+  // Build results
+  const efficiency = GAME.tagged.length > 0 ? Math.round((objsDone / GAME.mission.objectives.length) * 100) : 0;
+  document.getElementById('result-icon').textContent = allDone ? '🏆' : abandoned ? '🏊' : '🌊';
+  document.getElementById('result-title').textContent = abandoned ? 'Headed to Surface' : allDone ? 'Expedition Complete!' : 'Great Dive!';
+  document.getElementById('result-sub').textContent = `${STATE.playerAvatar} ${STATE.playerName} earned 🪙${GAME.score.toLocaleString()} coins`;
+  document.getElementById('result-score').textContent = '🪙' + GAME.score.toLocaleString();
+
+  document.getElementById('result-stats').innerHTML = `
+    <div class="stat-cell"><div class="stat-val">${GAME.tagged.length}</div><div class="stat-label">Species Tagged</div></div>
+    <div class="stat-cell"><div class="stat-val">${GAME.photos.length}</div><div class="stat-label">Photos Taken</div></div>
+    <div class="stat-cell"><div class="stat-val">${objsDone}/${GAME.mission.objectives.length}</div><div class="stat-label">Objectives</div></div>
+    <div class="stat-cell"><div class="stat-val">${efficiency}%</div><div class="stat-label">Mission Score</div></div>
+    ${GAME.multiplayer ? `<div class="stat-cell" style="grid-column:span 2"><div class="stat-val">${GAME.partnerScore.toLocaleString()}</div><div class="stat-label">Partner's Score</div></div>` : ''}
+  `;
+
+  const chips = document.getElementById('findings-chips');
+  chips.innerHTML = GAME.tagged.map(id => {
+    const a = ANIMALS.find(a => a.id === id);
+    return a ? `<div class="fc" title="${a.name}">${a.e}</div>` : '';
+  }).join('') || '<span class="text-muted">No species recorded this dive</span>';
+
+  // Hide game
+  document.getElementById('game-wrap').classList.add('hidden');
+  document.getElementById('pause-overlay').style.display = 'none';
+  showScreen('screen-results');
+}
+
+function replayMission() {
+  const m = MISSIONS.find(m => m.id === GAME.missionId);
+  if (m) startMission(m);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CODEX
+// ═══════════════════════════════════════════════════════════
+
+function renderCodex() {
+  const grid = document.getElementById('codex-grid');
+  grid.innerHTML = ANIMALS.map(a => {
+    const seen = STATE.codex[a.id] || 0;
+    const locked = seen === 0;
+    return `<div class="codex-card ${locked ? 'locked-card' : ''}" onclick="${!locked ? `showAnimalDetail('${a.id}')` : ''}">
+      <div class="codex-emoji">${locked ? '❓' : a.e}</div>
+      <div class="codex-name">${locked ? '???' : a.name}</div>
+      <div class="codex-sci">${locked ? 'Not yet discovered' : a.sci}</div>
+      ${seen > 0 ? `<div class="codex-seen">Seen ${seen}×</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function showAnimalDetail(id) {
+  const a = ANIMALS.find(a => a.id === id);
+  if (!a) return;
+  sfx('click');
+  // Show popup style
+  const msg = `${a.e} ${a.name}\n${a.sci}\n\n${a.fact}\n\nTags: ${a.tags.join(', ')}`;
+  // Use info popup
+  document.getElementById('popup-emoji').textContent = a.e;
+  document.getElementById('popup-name').textContent = a.name;
+  document.getElementById('popup-sci').textContent = a.sci;
+  document.getElementById('popup-fact').textContent = a.fact;
+  document.getElementById('popup-tags').innerHTML = a.tags.map(t => `<span class="ptag">${t}</span>`).join('');
+  document.getElementById('popup-tag-btn').style.display = 'none';
+  const popup = document.getElementById('info-popup');
+  popup.classList.remove('hidden');
+  popup.style.bottom = '20px';
+  popup.style.zIndex = '100';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SETTINGS
+// ═══════════════════════════════════════════════════════════
+
+function loadSettingsUI() {
+  const s = STATE.settings;
+  document.getElementById('set-sfx').checked = s.sfx;
+  document.getElementById('set-music').checked = s.music;
+  document.getElementById('set-volume').value = Math.round(s.volume * 100);
+  document.getElementById('vol-display').textContent = Math.round(s.volume * 100) + '%';
+  document.getElementById('set-haptic').checked = s.haptic;
+  document.getElementById('set-hints').checked = s.hints;
+  document.getElementById('set-particles').checked = s.particles;
+  document.getElementById('set-bubbles').checked = s.bubbles;
+  // Select buttons
+  document.querySelectorAll('[data-timer]').forEach(el => el.classList.toggle('active', parseInt(el.dataset.timer) === s.timer));
+  document.querySelectorAll('[data-density]').forEach(el => el.classList.toggle('active', el.dataset.density === s.density));
+  document.querySelectorAll('[data-diff]').forEach(el => el.classList.toggle('active', el.dataset.diff === s.difficulty));
+}
+
+function saveSettings() {
+  STATE.settings.sfx = document.getElementById('set-sfx').checked;
+  STATE.settings.haptic = document.getElementById('set-haptic').checked;
+  STATE.settings.hints = document.getElementById('set-hints').checked;
+  STATE.settings.particles = document.getElementById('set-particles').checked;
+  STATE.settings.bubbles = document.getElementById('set-bubbles').checked;
+  saveState();
+  applySettings();
+}
+
+function applySettings() {
+  document.getElementById('bubbles-container').style.display = STATE.settings.bubbles ? '' : 'none';
+  document.getElementById('particles-container').style.display = STATE.settings.particles ? '' : 'none';
+}
+
+function setTimer(el) {
+  document.querySelectorAll('[data-timer]').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  STATE.settings.timer = parseInt(el.dataset.timer);
+  sfx('click');
+  saveState();
+}
+
+function setDensity(el) {
+  document.querySelectorAll('[data-density]').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  STATE.settings.density = el.dataset.density;
+  sfx('click');
+  saveState();
+}
+
+function setDiff(el) {
+  document.querySelectorAll('[data-diff]').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  STATE.settings.difficulty = el.dataset.diff;
+  sfx('click');
+  saveState();
+}
+
+function resetProgress() {
+  if (!confirm('Reset all progress, scores, and codex entries?')) return;
+  STATE.codex = {};
+  STATE.missions = { m1:false, m2:false, m3:false, m4:false, m5:false, m6:false };
+  STATE.totalScore = 0; STATE.xp = 0; STATE.level = 1;
+  saveState();
+  sfx('warning');
+  toast('Progress reset', 'warn');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  BACKGROUND EFFECTS
+// ═══════════════════════════════════════════════════════════
+
+function buildBackground() {
+  // Light rays
+  const raysEl = document.getElementById('rays-container');
+  for (let i = 0; i < 12; i++) {
+    const ray = document.createElement('div');
+    ray.className = 'ray';
+    ray.style.left = (10 + i * 7) + '%';
+    ray.style.transform = `rotate(${-5 + i * 2}deg)`;
+    ray.style.opacity = 0.3 + Math.random() * 0.3;
+    ray.style.animation = `rayRot ${15+i*2}s linear infinite ${i%2===0 ? '' : 'alternate'}`;
+    raysEl.appendChild(ray);
+  }
+
+  // Bubbles
+  const bubblesEl = document.getElementById('bubbles-container');
+  for (let i = 0; i < 18; i++) {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const size = 4 + Math.random() * 14;
+    b.style.width = b.style.height = size + 'px';
+    b.style.left = Math.random() * 100 + '%';
+    b.style.animationDuration = (8 + Math.random() * 14) + 's';
+    b.style.animationDelay = (-Math.random() * 20) + 's';
+    bubblesEl.appendChild(b);
+  }
+
+  // Particles
+  const partsEl = document.getElementById('particles-container');
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.setProperty('--i', i);
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (12 + Math.random() * 20) + 's';
+    p.style.animationDelay = (-Math.random() * 30) + 's';
+    p.style.opacity = 0.3 + Math.random() * 0.4;
+    partsEl.appendChild(p);
+  }
+}
+
+function buildSceneParticles() {
+  const el = document.getElementById('scene-particles');
+  el.innerHTML = '';
+  // Floating dust
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'snow';
+    const sz = 2 + Math.random() * 4;
+    p.style.setProperty('--i', i);
+    p.style.width = p.style.height = sz + 'px';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (10 + Math.random() * 15) + 's';
+    p.style.animationDelay = (-Math.random() * 20) + 's';
+    el.appendChild(p);
+  }
+  // Background fish schools
+  ['🐟', '🐠', '🐡'].forEach((fish, idx) => {
+    const school = document.createElement('div');
+    school.className = 'fish-school';
+    school.textContent = fish.repeat(4);
+    school.style.top = (20 + idx * 25) + '%';
+    school.style.animationDuration = (20 + idx * 8) + 's';
+    school.style.animationDelay = (-Math.random() * 20) + 's';
+    el.appendChild(school);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════════
+
+function toast(msg, type='info') {
+  const container = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type === 'good' ? 'good' : type === 'warn' ? 'warn' : 'info'}`;
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(() => t.remove(), 2900);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+
+window.addEventListener('load', () => {
+  loadState();
+  buildBackground();
+  // Load name if saved
+  if (STATE.playerName !== 'Biologist') {
+    document.getElementById('input-name').value = STATE.playerName;
+  }
+  document.querySelector(`[data-av="${STATE.playerAvatar}"]`)?.click();
+
+  // Ambient ocean touch → audio init
+  document.addEventListener('touchstart', initAudio, { once: true });
+  document.addEventListener('click', initAudio, { once: true });
+
+  // Prevent default scroll/bounce
+  document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+
+  // Handle install button visibility and Android prompt
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+  const installBtn = document.getElementById('install-btn');
+
+  if (isStandalone) {
+    // Already installed — hide the button
+    if (installBtn) installBtn.style.display = 'none';
+  } else if (isIOS) {
+    // iOS — show button, tapping shows the step-by-step modal
+    if (installBtn) installBtn.style.display = '';
+  } else {
+    // Try Android/Chrome native prompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      window._deferredInstall = e;
+      if (installBtn) installBtn.style.display = '';
+    });
+    // If no native prompt fires, show generic hint
+    setTimeout(() => {
+      if (!window._deferredInstall && installBtn) installBtn.style.display = '';
+    }, 2000);
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+//  INSTALL PROMPT
+// ═══════════════════════════════════════════════════════════
+
+function showInstallPrompt() {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isIPad = /ipad/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  // Android — use native prompt if available
+  if (window._deferredInstall) {
+    window._deferredInstall.prompt();
+    window._deferredInstall.userChoice.then(() => { window._deferredInstall = null; });
+    return;
+  }
+
+  // iOS — show step-by-step modal
+  const modal = document.getElementById('ios-install-modal');
+  const steps = document.getElementById('ios-install-steps');
+
+  if (isIPad || /ipad/i.test(navigator.userAgent)) {
+    steps.innerHTML = `
+      <div class="ios-step"><span class="ios-step-num">1</span><span>Tap the <strong>Share</strong> button <span class="ios-icon">⬆️</span> in Safari's toolbar at the <strong>top</strong> of the screen</span></div>
+      <div class="ios-step"><span class="ios-step-num">2</span><span>Scroll down and tap <strong>"Add to Home Screen"</strong> <span class="ios-icon">➕</span></span></div>
+      <div class="ios-step"><span class="ios-step-num">3</span><span>Tap <strong>"Add"</strong> in the top right — done! 🎉</span></div>
+    `;
+  } else {
+    steps.innerHTML = `
+      <div class="ios-step"><span class="ios-step-num">1</span><span>Tap the <strong>Share</strong> button <span class="ios-icon">⬆️</span> at the <strong>bottom</strong> of Safari</span></div>
+      <div class="ios-step"><span class="ios-step-num">2</span><span>Scroll down and tap <strong>"Add to Home Screen"</strong> <span class="ios-icon">➕</span></span></div>
+      <div class="ios-step"><span class="ios-step-num">3</span><span>Tap <strong>"Add"</strong> in the top right — done! 🎉</span></div>
+    `;
+  }
+
+  modal.style.display = 'flex';
+}
+
+function closeInstallModal() {
+  document.getElementById('ios-install-modal').style.display = 'none';
+}
+</script>
+
+<!-- iOS Install Modal -->
+<div id="ios-install-modal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(1,12,24,0.92);align-items:flex-end;justify-content:center;padding:20px;">
+  <div style="background:#0a2340;border:1.5px solid rgba(0,200,255,0.3);border-radius:24px;padding:28px 22px;width:100%;max-width:400px;box-shadow:0 -8px 40px rgba(0,0,0,0.6);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:2.2rem;">🌊</span>
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:1.1rem;color:#e8f4fd;font-weight:700;">Blue With You</div>
+          <div style="font-size:0.72rem;color:#5e9bc0;margin-top:2px;">Add to Home Screen</div>
+        </div>
+      </div>
+      <button onclick="closeInstallModal()" style="background:rgba(0,200,255,0.1);border:1px solid rgba(0,200,255,0.2);color:#5e9bc0;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;">✕</button>
+    </div>
+    <div id="ios-install-steps" style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px;"></div>
+    <div style="background:rgba(0,200,255,0.06);border:1px solid rgba(0,200,255,0.15);border-radius:12px;padding:10px 14px;font-size:0.75rem;color:#5e9bc0;text-align:center;">
+      🔒 Must be opened in <strong style="color:#00c8ff;">Safari</strong> for Add to Home Screen to work
+    </div>
+  </div>
+</div>
+
+<style>
+.ios-step{display:flex;align-items:flex-start;gap:12px;font-size:0.88rem;color:#e8f4fd;line-height:1.5;}
+.ios-step-num{background:linear-gradient(135deg,#1a7cc9,#00c8ff);color:#010c18;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:0.78rem;flex-shrink:0;margin-top:1px;}
+.ios-icon{font-size:1rem;}
+</style>
+</body>
+</html>
